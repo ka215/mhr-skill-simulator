@@ -1,23 +1,17 @@
+# directories
 .DS_Store
+.config
+bulk_data
+docs
 node_modules
-/dist
-
+vendor
 
 # local env files
-.env.local
-.env.*.local
+.env
+database.json
 
 # Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+*.log*
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Test files
+test-*

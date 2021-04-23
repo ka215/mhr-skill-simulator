@@ -1,7 +1,19 @@
 {
-  "name": "mhr-simulator",
+  "name": "mhr-skill-simulator",
+  "description": "Skill simulation tool for Monster Hunter Rise",
   "version": "0.1.0",
   "private": true,
+  "keywords": [
+    "skill simulator",
+    "monster hunter rise",
+    "vuetify"
+  ],
+  "homepage": "https://ka2.org",
+  "author": {
+    "name": "ka2 (Katsuhiko Maeno)",
+    "email": "ka2@ka2.org"
+  },
+  "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
