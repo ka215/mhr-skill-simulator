@@ -1,0 +1,78 @@
+/* Globals */
+$body-font-family: "UD デジタル 教科書体 NK-R", "UD Digi Kyokasho NK-R", "Yu Gothic", Meiryo, "Hiragino Kaku Gothic Pro", "BIZ UDゴシック", "BIZ UDGothic", Osaka, sans-serif;
+$border-radius-root: 6px;
+$font-size-root: 15px;
+
+$btn-text-transform: capitalize;
+
+/* MHRise Skill Simulator Colors */
+$headline-dark-color: #B0BEC5;
+$headline-light-color: #607D8B;
+$sub-headline-dark-color: #FFC107;
+$sub-headline-light-color: #FF8F00;
+$rare-1-dark-color: #CDFAFA;
+$rare-2-dark-color: #FDFD7B;
+$rare-3-dark-color: #FAAAC3;
+$rare-4-dark-color: #ACDE95;
+$rare-5-dark-color: #62B0D6;
+$rare-6-dark-color: #7F94EF;
+$rare-7-dark-color: #EB5E4A;
+$rare-1-light-color: #657A7A;
+$rare-2-light-color: #C3C302;
+$rare-3-light-color: #F55F8F;
+$rare-4-light-color: #6FC647;
+$rare-5-light-color: #2C9ED3;
+$rare-6-light-color: #526EE9;
+$rare-7-light-color: #E6351E;
+$talisman-path1-dark-color: #202020;
+$talisman-path2-dark-color: #7A7A7A;
+$talisman-path3-dark-color: #DEDEDE;
+$talisman-path1-light-color: #515151;
+$talisman-path2-light-color: #AAAAAA;
+$talisman-path3-light-color: #EAEAEA;
+$below-level-dark-color:  #FFFDE7;
+$max-level-dark-color:    #FF9800;
+$excess-level-dark-color: #D84315;
+$below-level-light-color:  #212121;
+$max-level-light-color:    #FF9100;
+$excess-level-light-color: #DD2C00;
+$increase-dark-color: #00E676;
+$decrease-dark-color: #F44336;
+$nochange-dark-color: #9E9E9E;
+$increase-light-color: #4CAF50;
+$decrease-light-color: #FF1744;
+$nochange-light-color: #757575;
+$fire-dark-color:    #E53935;
+$water-dark-color:   #1E88E5;
+$thunder-dark-color: #FFD600;
+$ice-dark-color:     #84FFFF;
+$dragon-dark-color:  #AB47BC;
+$fire-light-color:    #D50000;
+$water-light-color:   #1976D2;
+$thunder-light-color: #FBC02D;
+$ice-light-color:     #00BCD4;
+$dragon-light-color:  #9C27B0;
+$actived-dark-color: #00E676;
+$actived-light-color: #4CAF50;
+$muted-dark-color: #9E9E9E;
+$muted-light-color: #757575;
+
+/* MHRise Skill Simulator Icon fonts */
+$mhrssi-font-family: "MHRise-Skill-Simulator" !default;
+$mhrssi-font-path: "../assets/fonts" !default;
+
+$mhrssi-talisman-one-slot-path1: "\e900";
+$mhrssi-talisman-one-slot-path2: "\e901";
+$mhrssi-talisman-one-slot-path3: "\e902";
+$mhrssi-talisman-one-slot-path4: "\e903";
+$mhrssi-talisman-two-slot-path1: "\e904";
+$mhrssi-talisman-two-slot-path2: "\e905";
+$mhrssi-talisman-two-slot-path3: "\e906";
+$mhrssi-talisman-two-slot-path4: "\e907";
+$mhrssi-talisman-two-slot-path5: "\e908";
+$mhrssi-talisman-three-slot-path1: "\e909";
+$mhrssi-talisman-three-slot-path2: "\e90a";
+$mhrssi-talisman-three-slot-path3: "\e90b";
+$mhrssi-talisman-three-slot-path4: "\e90c";
+$mhrssi-talisman-three-slot-path5: "\e90d";
+$mhrssi-talisman-three-slot-path6: "\e90e";

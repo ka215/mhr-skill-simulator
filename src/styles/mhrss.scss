@@ -1,0 +1,177 @@
+/* Text Colors */
+.headline--text {
+  .theme--dark &  { color: $headline-dark-color;  }
+  .theme--light & { color: $headline-light-color; }
+}
+.sub-headline--text {
+  .theme--dark &  { color: $sub-headline-dark-color;  }
+  .theme--light & { color: $sub-headline-light-color; }
+}
+.rare-1--text {
+  .theme--dark &  { color: $rare-1-dark-color;  }
+  .theme--light & { color: $rare-1-light-color; }
+}
+.rare-2--text {
+  .theme--dark &  { color: $rare-2-dark-color;  }
+  .theme--light & { color: $rare-2-light-color; }
+}
+.rare-3--text {
+  .theme--dark &  { color: $rare-3-dark-color;  }
+  .theme--light & { color: $rare-3-light-color; }
+}
+.rare-4--text {
+  .theme--dark &  { color: $rare-4-dark-color;  }
+  .theme--light & { color: $rare-4-light-color; }
+}
+.rare-5--text {
+  .theme--dark &  { color: $rare-5-dark-color;  }
+  .theme--light & { color: $rare-5-light-color; }
+}
+.rare-6--text {
+  .theme--dark &  { color: $rare-6-dark-color;  }
+  .theme--light & { color: $rare-6-light-color; }
+}
+.rare-7--text {
+  .theme--dark &  { color: $rare-7-dark-color;  }
+  .theme--light & { color: $rare-7-light-color; }
+}
+.below-level--text {
+  .theme--dark &  { color: $below-level-dark-color;  }
+  .theme--light & { color: $below-level-light-color; }
+}
+.max-level--text {
+  .theme--dark &  { color: $max-level-dark-color;  }
+  .theme--light & { color: $max-level-light-color; }
+}
+.excess-level--text {
+  .theme--dark &  { color: $excess-level-dark-color;  }
+  .theme--light & { color: $excess-level-light-color; }
+}
+.increase--text {
+  .theme--dark &  { color: $increase-dark-color;  }
+  .theme--light & { color: $increase-light-color; }
+}
+.decrease--text {
+  .theme--dark &  { color: $decrease-dark-color;  }
+  .theme--light & { color: $decrease-light-color; }
+}
+.nochange--text {
+  .theme--dark &  { color: $nochange-dark-color;  }
+  .theme--light & { color: $nochange-light-color; }
+}
+.fire--text {
+  .theme--dark &  { color: $fire-dark-color;  }
+  .theme--light & { color: $fire-light-color; }
+}
+.water--text {
+  .theme--dark &  { color: $water-dark-color;  }
+  .theme--light & { color: $water-light-color; }
+}
+.thunder--text {
+  .theme--dark &  { color: $thunder-dark-color;  }
+  .theme--light & { color: $thunder-light-color; }
+}
+.ice--text {
+  .theme--dark &  { color: $ice-dark-color;  }
+  .theme--light & { color: $ice-light-color; }
+}
+.dragon--text {
+  .theme--dark &  { color: $dragon-dark-color;  }
+  .theme--light & { color: $dragon-light-color; }
+}
+.actived--text {
+  .theme--dark &  { color: $actived-dark-color !important;  }
+  .theme--light & { color: $actived-light-color !important; }
+}
+.muted--text {
+  .theme--dark &  { color: rgba($muted-dark-color, 0.8) !important;  }
+  .theme--light & { color: rgba($muted-light-color, 0.8) !important; }
+}
+/* Buttons */
+.btn-primary {
+  color: #ffffff !important;
+
+  .theme--dark & {
+    background-color: #2196F3 !important;
+    border-color: rgba(#2196F3, 0.6) !important;
+  }
+  .theme--light & {
+    background-color: #38A8FE !important;
+    border-color: rgba(#38A8FE, 0.6) !important;
+  }
+}
+.btn-secondary {
+  color: #ffffff !important;
+
+  .theme--dark & {
+    background-color: #1C7FCC !important;
+    border-color: rgba(#1C7FCC, 0.6) !important;
+  }
+  .theme--light & {
+    background-color: #318ED6 !important;
+    border-color: rgba(#318ED6, 0.6) !important;
+  }
+}
+.btn-tertiary {
+  color: #ffffff !important;
+
+  .theme--dark & {
+    background-color: #1767A5 !important;
+    border-color: rgba(#1767A5, 0.6) !important;
+  }
+  .theme--light & {
+    background-color: #2875AF !important;
+    border-color: rgba(#2875AF, 0.6) !important;
+  }
+}
+.btn-default {
+  color: #ffffff !important;
+
+  .theme--dark & {
+    background-color: #114F7F !important;
+    border-color: rgba(#114F7F, 0.6) !important;
+  }
+  .theme--light & {
+    background-color: #1F5B89 !important;
+    border-color: rgba(#1F5B89, 0.6) !important;
+  }
+}
+/* Data Table Styles */
+.v-data-table {
+  thead > tr > th:not(:last-child),
+  tbody > tr > td:not(:nth-child(1)):not(:last-child),
+  tfoot > tr > th:not(:last-child) {
+    .theme--dark &  { border-right: thin dashed rgba(#ffffff, 0.06); }
+    .theme--light & { border-right: thin dashed rgba(#000000, 0.1); }
+  }
+  tbody > tr > td {
+    border-radius: 0 !important;
+
+    &:not(:first-child) { text-align: center; }
+  }
+  tfoot > tr {
+    & > th {
+      .theme--dark &  { color: rgba(#ffffff, 0.7); }
+      .theme--light & { color: rgba(#000000, 0.6); }
+    }
+    &:first-child > th {
+      .theme--dark &  { border-top: thin solid rgba(#ffffff, 0.12); }
+      .theme--light & { border-top: thin solid rgba(#000000, 0.12); }
+    }
+  }
+}
+
+/* Talisman Component */
+.v-talisman {
+  position: relative;
+  display: inline-block;
+
+  > [class^=mhrssi-] {
+    position: relative;
+
+    &:hover {
+      /* background-color: rgba(255, 0, 0, 0.3); */
+    }
+  }
+}
+

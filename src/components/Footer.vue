@@ -38,7 +38,7 @@ export default {
 
   data: () => ({
     labels: {
-      version:   'Ver.0.1.1',
+      version:   'Ver.0.1.2',
       copyright: 'Monaural Sound ka2.org,',
       poweredby: 'Powered by MAGIC METHODS',
     },

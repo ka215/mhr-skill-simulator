@@ -12,7 +12,7 @@
       <v-list-item
         v-for="(item, i) in items"
         :key="i"
-        _:to="item.slug"
+        :to="item.to"
       >
         <v-list-item-icon>
           <v-icon
@@ -38,12 +38,12 @@ export default {
       subheader: '機能メニュー',
     },
     items: [
-      { slug: 'main',        icon: 'alpha-m-circle-outline', label: 'メイン', },
-      { slug: 'weapons',     icon: 'alpha-w-circle-outline', label: '武器', },
-      { slug: 'armors',      icon: 'alpha-a-circle-outline', label: '防具', },
-      { slug: 'decorations', icon: 'alpha-d-circle-outline', label: '装飾品', },
-      { slug: 'talismans',   icon: 'alpha-t-circle-outline', label: '護石', },
-      { slug: 'skills',      icon: 'alpha-s-circle-outline', label: 'スキル', },
+      { to: '/',            icon: 'alpha-m-circle-outline', label: 'メイン', },
+      { to: '/weapons',     icon: 'alpha-w-circle-outline', label: '武器', },
+      { to: '/armors',      icon: 'alpha-a-circle-outline', label: '防具', },
+      { to: '/decorations', icon: 'alpha-d-circle-outline', label: '装飾品', },
+      { to: '/talismans',   icon: 'alpha-t-circle-outline', label: '護石', },
+      { to: '/skills',      icon: 'alpha-s-circle-outline', label: 'スキル', },
     ],
   }),
 

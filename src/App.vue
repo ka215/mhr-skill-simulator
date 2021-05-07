@@ -2,8 +2,8 @@
   <v-app>
     <v-navigation-drawer
       v-model="drawer"
-      absolute
-      _app
+      _absolute
+      app
       _bottom
       temporary
     >
@@ -37,13 +37,11 @@
       <v-container
         fluid
       >
-        <!-- router-view / -->
-        <MainView />
+        <router-view />
       </v-container>
     </v-main>
 
     <v-footer
-      app
       padless
       class="transparent"
     >
@@ -54,7 +52,6 @@
 
 <script>
 import SideMenu from './components/SideMenu'
-import MainView from './components/MainView'
 import Footer   from './components/Footer'
 
 export default {
@@ -62,7 +59,6 @@ export default {
 
   components: {
     SideMenu,
-    MainView,
     Footer,
   },
 
@@ -82,6 +78,7 @@ export default {
 
   created() {
     this.darkTheme = this.$vuetify.theme.isDark
+    console.log('App.vue::', this.isLocalhost())
   },
 
   mounted() {
