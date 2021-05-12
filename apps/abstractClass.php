@@ -10,7 +10,7 @@ namespace MHRise\SkillSimulator;
 if ( !class_exists( 'abstractClass' ) ) :
 
 abstract class abstractClass {
-    const VERSION   = '1.0.0';
+    const VERSION   = '0.1.3';
 
     /**
      * Holds application's directory path
@@ -221,14 +221,7 @@ abstract class abstractClass {
      *
      * @access protected
      */
-    protected function catch_request(): void {
-        if ( !empty( $_POST ) ) {
-            $this->set_option( 'post', filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING ) );
-        }
-        if ( !empty( $_GET ) ) {
-            $this->set_option( 'get', filter_input_array( INPUT_GET, FILTER_SANITIZE_STRING ) );
-        }
-    }
+    abstract protected function catch_request();
 
 }
 

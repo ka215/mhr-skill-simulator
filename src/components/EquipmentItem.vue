@@ -4,7 +4,17 @@
     tile
     class="d-flex flex-wrap mb-2 pa-2"
   >
-    <template v-if="item">
+    <template v-if="loading">
+      <div class="pa-2 text-center" style="width:100%">
+        <v-progress-circular
+          :size="32"
+          :width="3"
+          indeterminate
+          :color="`grey ${$vuetify.theme.isDark ? 'darken-3': 'ligten-4'}`"
+        ></v-progress-circular>
+      </div>
+    </template>
+    <template v-else-if="item">
       <v-card-text
         class="text-subtitle-2 muted--text mx-0 py-1 px-0 col-2"
       >
@@ -123,7 +133,7 @@
 
 <script>
 import Talisman from '@/components/Talisman'
-import mockData from '@/../public/mock_data.json'
+//import mockData from '@/../public/mock_data.json'
 
 export default {
   name: 'EquipmentItem',
@@ -151,6 +161,7 @@ export default {
       edit: '着脱',
       change: '変更',
     },
+    loading: true,
   }),
 
   watch: {
@@ -161,6 +172,8 @@ export default {
   },
 
   created() {
+    this.getData('mock_data.json')
+    /*
     let items = mockData[`${this.$props.type}s`].filter(item => item.id == Number(this.$props.id))
     if (items) {
       this.item = items.shift()
@@ -170,6 +183,7 @@ export default {
         name: '-', rarity: 0, 
       }
     }
+    */
   },
 
   mounted() {
@@ -217,6 +231,30 @@ export default {
     openDialog: function (target) {
       //console.log(`EquipmentItem.vue::beforeEmit.open:${target}`, this.item)
       this.$root.$emit(`open:${target}`, this.item)
+    },
+    getData: function(path) {
+      const instance = this.createAxios()
+      instance.get(path)
+      .then(response => {
+        let items = response.data[`${this.$props.type}s`].filter(item => item.id == Number(this.$props.id))
+        if (items) {
+          this.item = items.shift()
+          this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
+        } else {
+          this.item = {
+            name: '-', rarity: 0, 
+          }
+        }
+        console.log('EquipmentItem.vue::getData:', this.item)
+      })
+      .catch(error => {
+        console.error(`Failure to retrieve equipment data. (${error})`)
+      })
+      .finally(() => {
+        this.sleep(500).then(() => {
+          this.loading = false
+        })
+      })
     },
   },
 

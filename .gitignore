@@ -5,9 +5,11 @@ bulk_data
 docs
 node_modules
 vendor
+v0.*.*
 
 # local env files
 .env
+.htaccess
 database.json
 
 # Log files

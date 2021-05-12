@@ -102,4 +102,75 @@ trait DBHelper {
             return false;
         }
     }
+
+    /**
+     * Retrieving data from specified table
+     *
+     * @access protected
+     */
+    protected function retrieve_data( string $table_name, array $conditions, bool $use_named_parameters = true ): array {
+        $where = [];
+        $parameters = [];
+        if ( ! empty( $conditions ) ) {
+            foreach ( $conditions as $_cond ) {
+                if ( $use_named_parameters ) {
+                    $where[':' . $_cond[0]] = '`'. $_cond[0] .'` '. $_cond[1] .' :'. $_cond[0];
+                    $parameters[':' . $_cond[0]] = $_cond[2];
+                } else {
+                    $where[$_cond[0]] = '`'. $_cond[0] .'` '. $_cond[1] .' ?';
+                    $parameters[$_cond[0]] = $_cond[2];
+                }
+            }
+        }
+        $base_sql = "SELECT * FROM $table_name";
+        if ( ! empty( $where ) ) {
+            $base_sql .= ' WHERE %s';
+            $base_sql = sprintf( $base_sql, implode( ' AND ', $where ) );
+        }
+        // Ready for binding values
+        $bind_values = [];
+        $bind_index  = 0;
+        foreach ( $parameters as $_key => $_val ) {
+            switch ( gettype( $_val ) ) {
+                case 'integer':
+                    $value = intval( $_val );
+                    $data_type = \PDO::PARAM_INT;
+                    break;
+                case 'array':
+                case 'object':
+                    $value = json_encode( $_val );
+                    $data_type = \PDO::PARAM_STR;
+                    break;
+                case 'boolean':
+                    $value = boolval( $_val );
+                    $data_type = \PDO::PARAM_BOOL;
+                    break;
+                case 'NULL':
+                    $value = null;
+                    $data_type = \PDO::PARAM_NULL;
+                    break;
+                case 'double':
+                case 'string':
+                default:
+                    $value = strval( $_val );
+                    $data_type = \PDO::PARAM_STR;
+                    break;
+            }
+            $bind_index++;
+            $bind_key = $use_named_parameters ? $_key : $bind_index;
+            $bind_values[$bind_key] = [ $value, $data_type ];
+        }
+        // Execute data insertion
+        try {
+            $sth = $this->dbh->prepare( $base_sql );
+            foreach ( $bind_values as $_key => $_value ) {
+                $sth->bindValue( $_key, $_value[0], $_value[1] );
+            }
+            $sth->execute();
+            return $sth->fetchAll( \PDO::FETCH_ASSOC );
+        } catch ( \PDOException $e ) {
+            throw $e;
+            return [];
+        }
+    }
 }

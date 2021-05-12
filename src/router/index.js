@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import Skills from '../views/Skills.vue'
 
 Vue.use(VueRouter)
 
@@ -9,12 +10,17 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-  }
+  },
+  {
+    path: '/skills',
+    name: 'Skills',
+    component: Skills,
+  },
 ]
 
 const router = new VueRouter({
   mode: 'history',
-  base: /^(localhost|127\.0\.0\.1)$/.test(document.location.hostname) ? 'mhr-simulator/': 'mhr/v0.1.2/',
+  base: /^(localhost|127\.0\.0\.1)$/.test(document.location.hostname) ? 'mhr-simulator/': 'mhr/v0.1.3/',
   routes,
   scrollBehavior(to, from, savedPosition){
     if (savedPosition) {

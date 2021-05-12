@@ -1,4 +1,4 @@
-# mhr-simulator
+# Monster Hunter Rise Skill Simulator
 
 ## Project setup
 ```

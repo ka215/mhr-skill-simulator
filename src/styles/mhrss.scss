@@ -159,6 +159,36 @@
       .theme--light & { border-top: thin solid rgba(#000000, 0.12); }
     }
   }
+  /* Skill List */
+  &.skill-info {
+    tbody > tr:hover {
+      .theme--dark &  { background: rgba(#616161, 0.5) !important; }
+      .theme--light & { background: rgba(#b2ebf2, 0.5) !important; }
+    }
+    @media #{map-get($display-breakpoints, 'sm-and-down')} {
+      .theme--dark &  { border: thin solid rgba(#ffffff, 0.1); }
+      .theme--light & { border: thin solid rgba(#000000, 0.1); }
+
+      tbody > tr > td:first-child > div:first-child {
+        .theme--dark &  { border-bottom: thin solid rgba(#ffffff, 0.1); }
+        .theme--light & { border-bottom: thin solid rgba(#000000, 0.1); }
+      }
+      tbody > tr > td:last-child {
+        .theme--dark &  { border-left: thin solid rgba(#ffffff, 0.1); }
+        .theme--light & { border-left: thin solid rgba(#000000, 0.1); }
+      }
+    }
+    @media #{map-get($display-breakpoints, 'md-and-up')} {
+      .theme--dark &  { border: thin solid rgba(#ffffff, 0.06); }
+      .theme--light & { border: thin solid rgba(#000000, 0.1); }
+
+      tbody > tr > th:first-child,
+      tbody > tr > td:not(:last-child) {
+        .theme--dark &  { border-right: thin solid rgba(#ffffff, 0.06); }
+        .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
+      }
+    }
+  }
 }
 
 /* Talisman Component */
