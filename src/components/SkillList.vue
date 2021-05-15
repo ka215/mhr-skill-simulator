@@ -146,7 +146,8 @@ export default {
 
   methods: {
     getData: function(path) {
-      const instance = this.createAxios()
+      //const instance = this.createAxios('//dev2.ka2.org/mhr/')// <- on the XAMPP only
+      const instance = this.createAxios('//ka2.org/mhr/')// for production
       instance.get(path)
       .then(response => {
         this.skills = response.data

@@ -165,25 +165,14 @@ export default {
   }),
 
   watch: {
-    selectedLevel: function (newlv, oldlv) {
-      console.log('EquipmentItem.vue::change:selectedLevel', oldlv || 1, '->', newlv, this.item.part)
+    selectedLevel: function (newlv) {
+      //console.log('EquipmentItem.vue::change:selectedLevel', oldlv || 1, '->', newlv, this.item.part)
       this.$root.$emit('update:defenseLevel', newlv, this.item.part)
     },
   },
 
   created() {
     this.getData('mock_data.json')
-    /*
-    let items = mockData[`${this.$props.type}s`].filter(item => item.id == Number(this.$props.id))
-    if (items) {
-      this.item = items.shift()
-      this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
-    } else {
-      this.item = {
-        name: '-', rarity: 0, 
-      }
-    }
-    */
   },
 
   mounted() {
@@ -245,13 +234,13 @@ export default {
             name: '-', rarity: 0, 
           }
         }
-        console.log('EquipmentItem.vue::getData:', this.item)
+        //console.log('EquipmentItem.vue::getData:', this.item)
       })
       .catch(error => {
         console.error(`Failure to retrieve equipment data. (${error})`)
       })
       .finally(() => {
-        this.sleep(500).then(() => {
+        this.sleep(300).then(() => {
           this.loading = false
         })
       })

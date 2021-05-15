@@ -10,11 +10,13 @@ export default {
       return await new Promise(resolve => setTimeout(resolve, sec))
     },
     // Create axios instance
-    createAxios: function() {
-      //const BASE_URI = this.isLocalhost() ? '//localhost:8080/': `//${window.location.hostname}/mhr-simulator/v0.1.3/`
-      const BASE_URI = this.isLocalhost() ? '//dev2.ka2.org/mhr-simulator/': `//${window.location.hostname}/mhr-simulator/v0.1.3/`
+    createAxios: function(overrideURL=null) {
+      //const DEFAULT_BASE_URL = this.isLocalhost() ? 'localhost:8080/': `${window.location.hostname}/mhr/v${process.env.VUE_APP_VERSION}/`
+      //const DEFAULT_BASE_URL = this.isLocalhost() ? 'dev2.ka2.org/mhr-simulator/': `${window.location.hostname}/mhr-simulator/v${process.env.VUE_APP_VERSION}/`
+      const DEFAULT_BASE_URL = this.isLocalhost() ? 'localhost:8080/': `${window.location.hostname}/mhr/v${process.env.VUE_APP_VERSION}/`
+      let connectURL = overrideURL || '//' + DEFAULT_BASE_URL
       return this.axios.create({
-        baseURL: BASE_URI,
+        baseURL: connectURL,
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
           'Accept': 'application/json',
@@ -22,28 +24,6 @@ export default {
         params: {
           token: null,
         },
-      })
-    },
-    // Get data via rest
-    getData: async function(...args) {
-      const instance = this.createAxios()
-      let query_str = '',
-          queries = [],
-          url = 'put'
-      for (let [key, val] of Object.entries(args)) {
-        queries.push(`${key}=${val}`)
-      }
-      query_str = '?' + encodeURI(queries.join('&'))
-      if (!query_str) {
-        url += query_str
-      }
-      console.log('putData::beforePOST:', url, args)
-      instance.post(url, args)
-      .then(response => {
-        console.log('putData::afterPOST:', response.data, response)
-      })
-      .catch(error => {
-        console.error(error)
       })
     },
   }
