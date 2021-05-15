@@ -27,6 +27,16 @@ final class bulkCore extends abstractClass {
     }
 
     /**
+     * Catch Requests
+     *
+     * @access protected
+     */
+    public function catch_request() {
+        // Nothing to do
+    }
+
+
+    /**
      * Importing data from a CSV file and registering it in a database
      *
      * @access public
@@ -116,12 +126,12 @@ final class bulkCore extends abstractClass {
             'weapons' => [
                 'id'                => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '武器ID' ],
                 'name'              => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '武器名' ],
+                'ruby_name'         => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '武器名ルビ' ],
                 'type'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '武器種' ],
                 'tree'              => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '派生名' ],
                 'rarity'            => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'レア度' ],
                 'rank'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'ランク' ],
                 'attack'            => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '攻撃力' ],
-                //'sharpness'         => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '切れ味' ],
                 'affinity'          => [ 'type' => 'tinyint(4)',          'pattern' => '^-?\d{1,4}$', 'label' => '会心率' ],
                 'defense_bonus'     => [ 'type' => 'int(11)',             'pattern' => '^[0-9]+$',    'label' => '防御力ボーナス' ],
                 'element1'          => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '属性1' ],
@@ -131,24 +141,65 @@ final class bulkCore extends abstractClass {
                 'slot1'             => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'スロット1' ],
                 'slot2'             => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'スロット2' ],
                 'slot3'             => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'スロット3' ],
-                //'rampage_skills'    => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '百竜スキル' ],
-                //'forging_materials' => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '生産素材' ],
-                //'upgrade_materials' => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '強化素材' ],
-                //'forge_funds'       => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '生産費用' ],
-                //'forge_with_money'  => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '購入費用' ],
-                //'upgrade_funds'     => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '強化費用' ],
-                //'rollbackable'      => [ 'type' => 'bit(1)',              'pattern' => '^(TRUE|true|True|FALSE|false|False|0|1)?$', 'label' => 'ロールバック可否' ],
+            ],
+            'weapon_meta' => [
+                'id'                  => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '武器メタID' ],
+                'weapon_id'           => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '武器ID' ],
+                'sharpness'           => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '斬れ味' ],
+                'shelling_type'       => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '砲撃タイプ' ],
+                'shelling_level'      => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '砲撃レベル' ],
+                'melody_effects'      => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '旋律効果' ],
+                'phial_type'          => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '装着ビン' ],
+                'phial_element'       => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'ビン属性' ],
+                'phial_element_value' => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => 'ビン属性値' ],
+                'kinsect_level'       => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '猟虫レベル' ],
+                'deviation'           => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'ブレ' ],
+                'recoil'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '反動' ],
+                'reload'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'リロード' ],
+                'mods'                => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'パーツ' ],
+                'cluster_bomb_type'   => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '拡散弾タイプ' ],
+                'special_ammo'        => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '特殊弾' ],
+                'arc_shot'            => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '曲射' ],
+                'charge_shot'         => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '溜め攻撃' ],
+                'forging_materials'   => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '生産素材' ],
+                'upgrade_materials'   => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '強化素材' ],
+                'forge_funds'         => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '生産費用' ],
+                'forge_with_money'    => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '購入費用' ],
+                'upgrade_funds'       => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '強化費用' ],
+                'rampage_skills'      => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '百竜スキル' ],
+                'rollbackable'        => [ 'type' => 'bit(1)',              'pattern' => '^(TRUE|true|True|FALSE|false|False|0|1)?$', 'label' => 'ロールバック可否' ],
+            ],
+            'ammo' => [
+                'id'                      => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '弾薬管理ID' ],
+                'weapon_id'               => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '武器ID' ],
+                'capacity'                => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '弾数（初期値）' ],
+                'capacity_lv1'            => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '弾数（装填拡張Lv1）' ],
+                'capacity_lv2'            => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '弾数（装填拡張Lv2）' ],
+                'capacity_lv3'            => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '弾数（装填拡張Lv3）' ],
+                'recoil'                  => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '反動（初期値）' ],
+                'recoil_lv1'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '反動（反動軽減Lv1）' ],
+                'recoil_lv2'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '反動（反動軽減Lv2）' ],
+                'recoil_lv3'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '反動（反動軽減Lv3）' ],
+                'reload'                  => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => 'リロード（初期値）' ],
+                'reload_lv1'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => 'リロード（装填速度Lv1）' ],
+                'reload_lv2'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => 'リロード（装填速度Lv2）' ],
+                'reload_lv3'              => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => 'リロード（装填速度Lv3）' ],
+                'moving_shot'             => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '移動射撃可' ],
+                'moving_reload'           => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '移動リロード可' ],
+                'single_fire_auto_reload' => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '単発自動装填' ],
+                'for_rapid_fire'          => [ 'type' => 'json',                'pattern' => '^.*?$',       'label' => '速射対応' ],
             ],
             'armors' => [
                 'id'                 => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '防具ID' ],
                 'name_male'          => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '防具名（男性用）' ],
                 'name_female'        => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '防具名（女性用）' ],
+                'ruby_name_male'     => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '防具名ルビ（男性用）' ],
+                'ruby_name_female'   => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => '防具名ルビ（女性用）' ],
                 'series'             => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',       'label' => 'シリーズ名' ],
-                'type'               => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '部位' ],
+                'part'               => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '部位' ],
                 'rarity'             => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'レア度' ],
                 'rank'               => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'ランク' ],
                 'defense'            => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '防御力' ],
-                'level'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => 'レベル' ],
                 'max_level'          => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$',   'label' => '最大レベル' ],
                 'fire_resistance'    => [ 'type' => 'tinyint(4)',          'pattern' => '^-?\d{1,4}$', 'label' => '火耐性' ],
                 'water_resistance'   => [ 'type' => 'tinyint(4)',          'pattern' => '^-?\d{1,4}$', 'label' => '水耐性' ],
@@ -163,17 +214,20 @@ final class bulkCore extends abstractClass {
                 'forge_funds'        => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',    'label' => '生産費用' ],
             ],
             'talismans' => [
-                'id'     => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '護石ID' ],
-                'name'   => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => '護石名' ],
-                'rarity' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'レア度' ],
-                'slot1'  => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット1' ],
-                'slot2'  => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット2' ],
-                'slot3'  => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット3' ],
-                'skills' => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'スキル' ],
+                'id'            => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '護石ID' ],
+                'name'          => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => '護石名' ],
+                'rarity'        => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'レア度' ],
+                'slot1'         => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット1' ],
+                'slot2'         => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット2' ],
+                'slot3'         => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット3' ],
+                'skills'        => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'スキル' ],
+                'emission_type' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '排出タイプ' ],
+                'emissions'     => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '排出数' ],
             ],
             'decorations' => [
                 'id'                => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '装飾品ID' ],
                 'name'              => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => '装飾品名' ],
+                'ruby_name'         => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => '装飾品名ルビ' ],
                 'rarity'            => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'レア度' ],
                 'slot'              => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット' ],
                 'skills'            => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'スキル' ],
@@ -183,6 +237,7 @@ final class bulkCore extends abstractClass {
             'skills' => [
                 'id'          => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => 'スキルID' ],
                 'name'        => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => 'スキル名' ],
+                'ruby_name'   => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => 'スキル名ルビ' ],
                 'description' => [ 'type' => 'text',                'pattern' => '^.*+$',     'label' => 'スキル概要' ],
                 'max_lv'      => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '最大レベル' ],
                 'status'      => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'ステータス' ],
