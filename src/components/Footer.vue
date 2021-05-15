@@ -38,16 +38,15 @@ export default {
 
   data: () => ({
     labels: {
-      version:   'Ver.0.1.2',
+      version:   `Ver.${process.env.VUE_APP_VERSION}`,
       copyright: 'Monaural Sound ka2.org,',
       poweredby: 'Powered by MAGIC METHODS',
     },
     icons: [
       { label: 'Home',    icon: 'home',                 href: 'https://ka2.org', },
-      { label: 'Contact', icon: 'email',                href: 'https://ka2.org/contact', },
+      // { label: 'Contact', icon: 'email',             href: 'https://ka2.org/contact', },
       { label: 'Issues',  icon: 'alert-circle-outline', href: 'https://github.com/ka215/mhr-skill-simulator/issues', },
     ],
   }),
-
 }
 </script>

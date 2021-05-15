@@ -20,7 +20,8 @@ const routes = [
 
 const router = new VueRouter({
   mode: 'history',
-  base: /^(localhost|127\.0\.0\.1)$/.test(document.location.hostname) ? 'mhr-simulator/': 'mhr/v0.1.3/',
+  //base: /^(localhost|127\.0\.0\.1)$/.test(document.location.hostname) ? 'mhr-simulator/': 'mhr/v0.1.3/',
+  base: process.env.BASE_URL,
   routes,
   scrollBehavior(to, from, savedPosition){
     if (savedPosition) {

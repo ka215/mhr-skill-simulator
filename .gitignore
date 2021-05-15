@@ -8,7 +8,7 @@ vendor
 v0.*.*
 
 # local env files
-.env
+.env*
 .htaccess
 database.json
 

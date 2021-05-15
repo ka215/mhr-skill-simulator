@@ -11,8 +11,8 @@ export default {
     },
     // Create axios instance
     createAxios: function() {
-      //const BASE_URI = this.isLocalhost() ? '//localhost:8080/': `//${window.location.hostname}/mhr-simulator/dist/`
-      const BASE_URI = this.isLocalhost() ? '//dev2.ka2.org/mhr-simulator/': `//${window.location.hostname}/mhr-simulator/dist/`
+      //const BASE_URI = this.isLocalhost() ? '//localhost:8080/': `//${window.location.hostname}/mhr-simulator/v0.1.3/`
+      const BASE_URI = this.isLocalhost() ? '//dev2.ka2.org/mhr-simulator/': `//${window.location.hostname}/mhr-simulator/v0.1.3/`
       return this.axios.create({
         baseURL: BASE_URI,
         headers: {
