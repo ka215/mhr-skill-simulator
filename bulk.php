@@ -26,6 +26,7 @@ if ( class_exists( $class ) ) {
         $table_name = filter_var( $argv[1], FILTER_SANITIZE_STRING );
         $csv_file   = filter_var( $argv[2], FILTER_SANITIZE_STRING );
         $instance->import_csv( $table_name, $csv_file );
+        //$instance->evaluate_talisman_worth();
     } else {
         die( 'Error: Parameters are missing.' . PHP_EOL );
     }

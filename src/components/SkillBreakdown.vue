@@ -19,24 +19,42 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(lv, skill) in summary"
-            :key="skill"
-            @click="openDialog(skill, lv)"
-          >
-            <td>{{ skill }}</td>
-            <td
-              :class="levelTextClass(skill, lv)"
-            >Lv{{ displayLevel(skill, lv) }}</td>
-            <td class="bd-0"></td>
-            <td
-              v-for="n in 6"
-              :key="n"
-              :class="`bd-${n}`"
-            >
-              {{ getSkillLv(skill, n) }}
-            </td>
-          </tr>
+          <template v-if="summary">
+            <template v-if="!isEmptySummary()">
+              <tr
+                v-for="(lv, skill) in summary"
+                :key="skill"
+                @click="openDialog(skill, lv)"
+              >
+                <td>{{ skill }}</td>
+                <td
+                  :class="levelTextClass(skill, lv)"
+                >Lv{{ displayLevel(skill, lv) }}</td>
+                <td class="bd-0"></td>
+                <td
+                  v-for="n in 6"
+                  :key="n"
+                  :class="`bd-${n}`"
+                >
+                  {{ getSkillLv(skill, n) }}
+                </td>
+              </tr>
+            </template>
+            <template v-else>
+              <tr class="no-hover-effect">
+                <td colspan="9" class="text--secondary text-center py-12">
+                  {{ labels.noSkill }}
+                </td>
+              </tr>
+            </template>
+          </template>
+          <template v-else>
+            <tr class="no-hover-effect">
+              <td colspan="9" class="text--secondary text-center py-12">
+                {{ labels.noData }}
+              </td>
+            </tr>
+          </template>
         </tbody>
         <tfoot>
           <tr>
@@ -57,7 +75,6 @@
 
 <script>
 import SkillDetail from '@/components/SkillDetail'
-import mockData from '@/../public/mock_data.json'
 
 export default {
   name: 'SkillBreakdown',
@@ -66,89 +83,102 @@ export default {
     SkillDetail,
   },
 
-  props: {
-    //
-  },
-
   data: () => ({
     labels: {
       title: 'スキルレベル内訳',
       th: [ '発動スキル', '武器', '頭部', '胸部', '腕部', '腰部', '脚部', '護石' ],
+      noData: 'データがありません。装備を選択してください。',
+      noSkill: '発動しているスキルはありません。',
     },
     skills: null,
     summary: null,
   }),
 
   created() {
-    const armors = mockData.armors,
-          talismans = mockData.talismans
-    this.skills = Object.assign(...armors.map((obj) => ({ [obj.part + 1]: obj.skills })))
-    this.skills[6] = talismans.map((obj) => obj.skills).shift()
-    let temp_summary = {}
-    for (const [, obj] of Object.entries(this.skills)) {
-      for (const [_k, _v] of Object.entries(obj)) {
-          if (_k in temp_summary) {
-            temp_summary[_k] += _v
-          } else {
-            temp_summary[_k] = _v
-          }
-      }
+    if (this.$store.getters.equipmentExists) {
+      this.createBreakdown()
     }
-    // Sort By Skill Level
-    let pairs = Object.entries(temp_summary)
-    pairs.sort(function(a, b) {
-      // keys by asc
-      let ak = a[0], bk = b[0]
-      return (ak < bk ? -1 : 1)
-    })
-    pairs.sort(function(a, b) {
-      // values by desc
-      let av = a[1], bv = b[1]
-      return (av < bv ? 1 : -1)
-    })
-    this.summary = Object.fromEntries(pairs)
-    console.log('SkillBreakdown.vue::created', this.skills, this.summary)
-    /* check
-    for (let _k in this.summary) {
-      console.log(_k, this.summary[_k])
-    }
-    */
   },
 
   mounted() {
-    //
-  },
-
-  computed: {
-    //
+    this.$store.subscribeAction({
+      after: (action) => {
+        switch (action.type) {
+          case 'setEquipment':
+            this.createBreakdown()
+            break
+        }
+      }
+    })
   },
 
   methods: {
+    isEmptySummary: function() {
+      //return !Object.keys(this.summary).length
+      for (let i in this.summary) {
+        return false
+      }
+      return true
+    },
     levelTextClass: function (skill, lv) {
-      // dummy
-      switch (lv) {
-        case 4:  return 'excess-level--text'
-        case 3:  return 'max-level--text'
-        case 2:  return 'below-level--text'
-        case 1:
-          return /^剥ぎ取り/.test(skill) ? 'max-level--text' : 'below-level--text'
-        default: return 'below-level--text'
+      let max_lv = this.getMaxSkillLv(skill)
+      switch (true) {
+        case lv > max_lv:   return 'excess-level--text'
+        case lv == max_lv:  return 'max-level--text'
+        case lv < max_lv:   return 'below-level--text'
       }
     },
     displayLevel: function (skill, lv) {
-      // dummy
-      if (lv > 3) {
-        lv = 3
+      let max_lv = this.getMaxSkillLv(skill)
+      if (lv > max_lv) {
+        lv = max_lv
       }
       return lv
     },
     getSkillLv: function (skill, part) {
-      if (skill in this.skills[part]) {
-        return this.skills[part][skill]
+      let kinds = ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman']
+      if (skill in this.skills[kinds[part]]) {
+        return this.skills[kinds[part]][skill]
       }
+    },
+    getMaxSkillLv: function (skill) {
+      let targetSkill = this.$store.state.skills.find(row => row.name === skill)
+      return targetSkill.max_lv
     },
     openDialog: function (skill, lv) {
       this.$root.$emit('open:SkillDetail', skill, lv)
+    },
+    createBreakdown: function() {
+      let kinds = ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman'],
+          currentSkills = {},
+          tempSummary = {},
+          pairs
+      //console.log('SkillBreakdown.vue::setEquipment.after: Changed "%s"', kind)
+      kinds.forEach(v => {
+        currentSkills[v] = Object.prototype.hasOwnProperty.call(this.$store.state[v].data, 'skills') ? this.$store.state[v].data.skills: {}
+      })
+      for (const [, obj] of Object.entries(currentSkills)) {
+        for (const [_skill, _lv] of Object.entries(obj)) {
+          if (_skill in tempSummary) {
+            tempSummary[_skill] += _lv
+          } else {
+            tempSummary[_skill] = _lv
+          }
+        }
+      }
+      this.skills = currentSkills
+      // Sort By Skill Level
+      pairs = Object.entries(tempSummary)
+      pairs.sort((a, b) => {
+        // First, the skill names are ordered by asc.
+        return a[0].localeCompare(b[0], 'ja')
+      })
+      pairs.sort((a, b) => {
+        // Finaly, the skill levels are ordered by desc.
+        return (a[1] < b[1] ? 1 : -1)
+      })
+      this.summary = Object.fromEntries(pairs)
+      //console.log(this.summary, this.skills)
     },
   },
 

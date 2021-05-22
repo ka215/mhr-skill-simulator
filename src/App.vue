@@ -2,15 +2,14 @@
   <v-app>
     <v-navigation-drawer
       v-model="drawer"
-      _absolute
       app
-      _bottom
       temporary
     >
       <SideMenu />
     </v-navigation-drawer>
 
     <v-app-bar
+      ref="appBar"
       app
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
@@ -37,11 +36,35 @@
       <v-container
         fluid
       >
-        <router-view />
+        <template v-if="loaded">
+          <router-view />
+        </template>
+        <template v-else>
+          <v-row
+            class="fill-height"
+            align-content="center"
+            justify="center"
+            :style="contentHeight"
+          >
+            <v-col cols="6">
+              <v-progress-linear
+                v-model="progress"
+                color="light-blue"
+                height="24"
+                striped
+              >
+                <template v-slot:default="{ value }">
+                  <strong>{{ Math.ceil(value) }}%</strong>
+                </template>
+              </v-progress-linear>
+            </v-col>
+          </v-row>
+        </template>
       </v-container>
     </v-main>
 
     <v-footer
+      ref="footer"
       padless
       class="transparent"
     >
@@ -63,22 +86,32 @@ export default {
   },
 
   data: () => ({
+    progress: 0,
     drawer: false,
     darkTheme: true,
     labels: {
       title: 'MHRise: Skill Simulator',
     },
+    loaded: true,
   }),
 
   watch: {
     darkTheme (value) {
       this.$vuetify.theme.isDark = value
-    }
+    },
+    progress (value) {
+      if (value >= 100) {
+        this.sleep(300).then(() => {
+          this.loaded = true
+        })
+      }
+    },
   },
 
   created() {
     this.darkTheme = this.$vuetify.theme.isDark
-    console.log('App.vue::', this.isLocalhost())
+    this.getMasterData()
+    console.log('App.vue::isLocalhost:', this.isLocalhost())
   },
 
   mounted() {
@@ -86,5 +119,11 @@ export default {
       this.drawer = value
     })
   },
-};
+
+  computed: {
+    contentHeight () {
+      return `height: ${this.$vuetify.breakpoint.height - 64 - 113}px`
+    },
+  },
+}
 </script>

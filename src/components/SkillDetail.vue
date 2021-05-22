@@ -10,16 +10,48 @@
       overlay-opacity="0.75"
     >
       <v-card>
-        <v-card-title>{{ skill || labels.title }}</v-card-title>
+        <v-card-title>{{ labels.title }}</v-card-title>
         <v-divider />
-        <v-card-subtitle
-          class="py-3"
-        >Level {{ level }}</v-card-subtitle>
-        <v-card-text
-          class="py-6"
+        <v-col
+          cols="12"
+          class="pa-0"
         >
-          スキルの説明用ダイアログ
-        </v-card-text>
+          <v-simple-table
+            class="skill-info"
+          >
+            <tr>
+              <td
+                class="skill-desc px-4"
+                style="width: 50%;"
+              >{{ labels.description }}</td>
+              <td
+                class="pa-0"
+                style="width: 50%;"
+              >
+                <v-simple-table
+                  v-if="skillData"
+                  class="transparent skill-levels"
+                >
+                  <tbody>
+                    <tr
+                      v-for="lv in Number(skillData.max_lv)"
+                      :key="lv"
+                    >
+                      <th
+                        :class="`text-caption ${lv == currentLevel ? nowLevelClasses(): ''}`"
+                        style="width: 60px;"
+                      >Lv {{ lv }}</th>
+                      <td
+                        :class="`text-caption ${lv == currentLevel ? nowLevelClasses(): ''} text-left py-1`"
+                        style="width:calc(100% - 60px);"
+                      >{{ skillData.status[lv] }}</td>
+                    </tr>
+                  </tbody>
+                </v-simple-table>
+              </td>
+            </tr>
+          </v-simple-table>
+        </v-col>
         <v-divider />
         <v-card-actions>
           <v-spacer />
@@ -34,29 +66,21 @@
 </template>
 
 <script>
-//import mockData from '@/../public/mock_data.json'
-
 export default {
   name: 'SkillDetail',
-
-  components: {
-    //
-  },
-
-  props: {
-    //
-  },
 
   data: () => ({
     dialog: false,
     labels: {
-      title: 'スキル詳細',
+      title: 'スキル名',
+      description: 'スキル詳細',
       close: '閉じる',
     },
-    skill: null,
-    level: null,
+    currentLevel: null,
+    skillData: null,
   }),
 
+  /*
   watch: {
     dialog: function (value) {
       if (!value) {
@@ -64,14 +88,17 @@ export default {
       }
     },
   },
+  */
 
   created() {
     this.$root.$on('open:SkillDetail', (...args) => {
       const [skill, level] = args
-      this.skill = skill
-      this.level = level
+      this.currentLevel = level
+      this.skillData = this.$store.state.skills.find(elm => elm.name === skill)
+      this.labels.title = this.skillData.name
+      this.labels.description = this.skillData.description
+      //console.log(`SkillDetail.vue::created:on.open:SkillDetail`, this.skillData, this.currentLevel)
       this.dialog = true
-      console.log(`SkillDetail.vue::created:on.open:SkillDetail`, this.skill, this.level)
     })
   },
 
@@ -91,14 +118,12 @@ export default {
   },
 
   methods: {
-    loadEquipItems: function() {
-      console.log('EquipChanger.vue::loadEquipItems', this.item)
-      // Loading...
-    },
-    commitEdit: function() {
-      console.log('EquipChanger.vue::commitEdit:save', this.values)
-      // Saving...
-      this.dialog = false
+    nowLevelClasses: function() {
+      if (this.$vuetify.theme.isDark) {
+        return 'font-weight-black amber--text text--accent-4 blue-grey darken-4'
+      } else {
+        return 'font-weight-black teal--text teal--accent-4 blue-grey lighten-4'
+      }
     },
   },
 

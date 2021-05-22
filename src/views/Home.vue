@@ -3,17 +3,17 @@
     class="d-flex flex-wrap justify-space-between align-stretch"
   >
     <div
-      class="align-self-start order-first mr-0 mb-3 pa-1 col-12 col-sm-3"
+      class="align-self-start order-first mr-0 mb-3 pa-1 col-12 col-sm-6 col-md-3"
     >
       <Equipment />
     </div>
     <div
-      class="align-self-start order-last order-sm-2 mr-0 mb-3 pa-1 col-12 col-sm-6"
+      class="align-self-start order-last order-md-2 mr-0 mb-3 pa-1 col-12 col-sm-12 col-md-6"
     >
       <SkillBreakdown />
     </div>
     <div
-      class="align-self-start order-2 order-sm-last mr-0 mb-3 pa-1 col-12 col-sm-3"
+      class="align-self-start order-2 order-md-last mr-0 mb-3 pa-1 col-12 col-sm-6 col-md-3"
     >
       <Status />
     </div>
@@ -39,7 +39,7 @@ export default {
   }),
 
   created() {
-    console.log(this.$route)
+    //console.log(this.$route)
   },
 }
 </script>

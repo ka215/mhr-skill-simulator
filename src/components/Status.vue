@@ -11,14 +11,14 @@
     <v-divider />
     <DefenseStatus />
     <v-divider />
-    <ItemConfig />
+    <PlayerConfig />
   </v-card>
 </template>
 
 <script>
 import AttackStatus from '@/components/AttackStatus'
 import DefenseStatus from '@/components/DefenseStatus'
-import ItemConfig from '@/components/ItemConfig'
+import PlayerConfig from '@/components/PlayerConfig'
 
 export default {
   name: 'Status',
@@ -26,11 +26,7 @@ export default {
   components: {
     AttackStatus,
     DefenseStatus,
-    ItemConfig,
-  },
-
-  props: {
-    //
+    PlayerConfig,
   },
 
   data: () => ({
@@ -38,22 +34,5 @@ export default {
       title: 'ステータス',
     },
   }),
-
-  created() {
-    //
-  },
-
-  mounted() {
-    //
-  },
-
-  computed: {
-    //
-  },
-
-  methods: {
-    //
-  },
-
 }
 </script>

@@ -48,7 +48,8 @@ final class bulkCore extends abstractClass {
         if ( !$this->table_exists( $table_name ) ) {
             die( 'The table specified as the import destination does not exist.' . PHP_EOL );
         }
-        $csv_data = new \SplFileObject( $csv_file, 'r' );
+        $file_path = $this->optimize_file( $csv_file );
+        $csv_data = new \SplFileObject( $file_path, 'r' );
         $csv_data->setFlags( \SplFileObject::READ_CSV );
         $base_csv_format = $this->get_csv_format( $table_name );
         $csv_format = array_values( $base_csv_format );
@@ -88,6 +89,10 @@ final class bulkCore extends abstractClass {
         if ( empty( $data ) ) {
             die( 'Oops, this CSV does not contain any valid data to import.' . PHP_EOL );
         }
+        // Discard file that have been read
+        if ( $csv_file !== $file_path ) {
+            $this->discard_file( $file_path );
+        }
         // Truncate table before insertion
         $this->truncate_table( $table_name );
         // Start insertion with transaction
@@ -109,11 +114,48 @@ final class bulkCore extends abstractClass {
             die( 'Error: ' . $e->getMessage() );
         }
         if ( $counter > 0 ) {
+            if ( $table_name === 'talismans' ) {
+                $this->evaluate_talisman_worth();
+            }
             $message = sprintf( '%d/%d data has been completed insertion into the "%s" table.', $counter, count( $data ), $table_name );
         } else {
             $message = 'Failed to insert data.';
         }
         die( $message . PHP_EOL );
+    }
+
+    /**
+     * Unify character encoding of import files to UTF-8
+     *
+     * @access private
+     */
+    private function optimize_file( string $file_path ): string {
+        setlocale( LC_ALL, 'ja_JP.UTF-8' );
+        $encodings = [ 'ASCII', 'ISO-2022-JP', 'UTF-8', 'eucjp-win', 'Windows-31J', 'sjis-win', 'SJIS' ];
+        $_data = @file_get_contents( $file_path );
+        $before_encoding = mb_detect_encoding( $_data, $encodings );
+        if ( $before_encoding === 'UTF-8' ) {
+            return $file_path;
+        }
+        if ( $before_encoding === false ) {
+            $before_encoding = 'SJIS';
+        }
+        $_data = mb_convert_encoding( $_data, 'UTF-8', $before_encoding );
+        $put_file_path = __DIR__ .'/'. md5( microtime( true ) ) .'.csv';
+        if ( file_put_contents( $put_file_path, $_data, LOCK_EX ) ) {
+            return $put_file_path;
+        } else {
+            die( 'Oops, this CSV does not contain any valid data to import.' );
+        }
+    }
+
+    /**
+     * Discard specific file
+     *
+     * @access private
+     */
+    private function discard_file( string $file_path ): void {
+        @unlink( $file_path );
     }
 
     /**
@@ -221,6 +263,7 @@ final class bulkCore extends abstractClass {
                 'slot2'         => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット2' ],
                 'slot3'         => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット3' ],
                 'skills'        => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'スキル' ],
+                'worth'         => [ 'type' => 'float(5,2) unsigned', 'pattern' => '^\d{1,3}\.?\d{,2}$', 'label' => '評価値' ],
                 'emission_type' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '排出タイプ' ],
                 'emissions'     => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '排出数' ],
             ],
@@ -242,8 +285,45 @@ final class bulkCore extends abstractClass {
                 'max_lv'      => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '最大レベル' ],
                 'status'      => [ 'type' => 'json',                'pattern' => '^.*?$',     'label' => 'ステータス' ],
             ],
+            'skill_evaluation' => [
+                'id'         => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => 'スキル評価ID' ],
+                'name'       => [ 'type' => 'varchar(255)',        'pattern' => '^.*+$',     'label' => 'スキル名' ],
+                'max_lv'     => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '最大レベル' ],
+                'rarity'     => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'レア度' ],
+                'slot'       => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット' ],
+                'score'      => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スコア' ],
+                'evaluation' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '評価' ],
+            ],
             default => [],
         };
+    }
+
+
+    public function evaluate_talisman_worth(): void {
+        if ( ! $this->table_exists( 'skill_evaluation' ) ) {
+            return;
+        }
+        $talismans = $this->retrieve_data( 'talismans', [[ 'worth', '=', '0' ]] );
+        $skill_evaluation = $this->retrieve_data( 'skill_evaluation', [] );
+        foreach ( $talismans as $item ) {
+            $evaluations = [];
+            $slots = (int)$item['slot1'] + (int)$item['slot2'] + (int)$item['slot3'];
+            if ( $slots > 0 ) {
+                $evaluations[] = $slots * 5.56;
+            }
+            $skills = json_decode( $item['skills'], true );
+            foreach ( $skills as $skill => $lv ) {
+                $_se = array_filter( $skill_evaluation, function( $elm ) use ( &$skill ) { return $elm['name'] === $skill; } );
+                if ( $_se ) {
+                    $_se = array_shift( $_se );
+                    $_bonus = (int)$lv == (int)$_se['max_lv'] ? 1.1 : 1;
+                    $evaluations[] = (int)$_se['evaluation'] * (int)$_se['slot'] * (int)$lv * $_bonus;
+                }
+            }
+            $worth = array_sum( $evaluations );
+            $stmh = $this->dbh->prepare( 'UPDATE talismans SET worth = :worth WHERE id = :id' );
+            $stmh->execute( [ ':worth' => (float)$worth, ':id' => (int)$item['id'] ] );
+        }
     }
 
 }

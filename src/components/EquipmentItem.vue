@@ -14,68 +14,48 @@
         ></v-progress-circular>
       </div>
     </template>
-    <template v-else-if="item">
+    <template v-else-if="item && item.name">
       <v-card-text
         class="text-subtitle-2 muted--text mx-0 py-1 px-0 col-2"
       >
-        <template v-if="$props.type === 'weapon'">
-          {{ item.type | itemType($props.type) }}
-        </template>
-        <template v-else-if="$props.type === 'armor'">
-          {{ item.part | itemType($props.type) }}
-        </template>
-        <template v-else-if="$props.type === 'talisman'">
-          {{ 0 | itemType($props.type) }}
-        </template>
+        {{ equipmentType }}
       </v-card-text>
       <v-card-title
         :class="['text-subtitle-1', `rare-${item.rarity}--text`, 'mx-0', 'pa-1', 'col-8']"
       >{{ item.name }}</v-card-title>
       <v-card-title
+        v-if="item.rarity > 0"
         :class="['text-caption', `rare-${item.rarity}--text`, 'text-no-wrap', 'mx-0', 'py-1', 'px-0', 'col-2']"
       >RARE {{ item.rarity }}</v-card-title>
       <v-card-actions
         class="d-flex flex-wrap justify-space-between py-1 px-0 col-12"
       >
         <div
-          class="d-flex align-center"
+          class="d-flex justify-start pa-0 col-6 col-md-3"
         >
           <Talisman :slotType="item.slot1" attached="" />
           <Talisman :slotType="item.slot2" attached="" />
           <Talisman :slotType="item.slot3" attached="" />
         </div>
-        <template v-if="$props.type === 'armor'">
+        <template v-if="isArmor($props.type)">
           <div
-            class="mx-1"
+            data-ref="levelSelector"
+            class="d-flex justify-center align-center px-1 py-0 col-6 col-md-4"
           >
-            <v-menu>
-              <template v-slot:activator="{on, attrs}">
-                <v-btn
-                  small
-                  text
-                  v-bind="attrs"
-                  v-on="on"
-                >Lv {{ selectedLevel || item.level }}/{{ item.max_level }}</v-btn>
-              </template>
-              <v-list dense>
-                <v-list-item-group
-                  v-model="selectedLevel"
-                >
-                  <v-list-item
-                    v-for="n in item.max_level"
-                    :key="n"
-                    :value="n"
-                  >
-                    <v-list-item-title
-                      class="text-caption"
-                    >{{ 'Lv ' + n + '/' + item.max_level }}</v-list-item-title>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-list>
-            </v-menu>
+            <label class="px-2">Lv</label>
+            <v-select
+              v-model="selectedLevel"
+              :items="levelItems"
+              _label="` 1/${item.max_level}`"
+              :hint="`最大: ${item.max_level}`"
+              height="24"
+              dense
+              persistent-hint
+              single-line
+            ></v-select>
           </div>
         </template>
-        <div class="text-right">
+        <div class="text-right pa-0 col-12 col-md-5">
           <v-btn
             class="btn-tertiary mr-2"
             elevation="0"
@@ -95,7 +75,7 @@
     <template v-else>
       <v-card-text
         class="text-subtitle-2 muted--text mx-0 py-1 px-0 col-2"
-      ><v-icon class="muted--text">mdi-minus</v-icon></v-card-text>
+      >{{ equipmentType }}</v-card-text>
       <v-card-title
         class="text-subtitle-1 muted--text mx-0 pa-1 col-8"
       ><v-icon class="muted--text">mdi-minus</v-icon></v-card-title>
@@ -131,9 +111,15 @@
   </v-card>
 </template>
 
+<style lang="scss">
+[data-ref=levelSelector] {
+  .v-select__selection--comma { position: absolute; left: 50%; transform: translateX(-66%); }
+  .v-messages__message { text-align: center; }
+}
+</style>
+
 <script>
 import Talisman from '@/components/Talisman'
-//import mockData from '@/../public/mock_data.json'
 
 export default {
   name: 'EquipmentItem',
@@ -155,9 +141,16 @@ export default {
 
   data: () => ({
     item: null,
-    hasSlot: false,
+    oldItem: null,
     selectedLevel: null,
     labels: {
+      weapon: '武器',
+      head: '頭部',
+      chest: '胸部',
+      arms: '腕部',
+      waist: '腰部',
+      legs: '脚部',
+      talisman: '護石',
       edit: '着脱',
       change: '変更',
     },
@@ -166,86 +159,111 @@ export default {
 
   watch: {
     selectedLevel: function (newlv) {
-      //console.log('EquipmentItem.vue::change:selectedLevel', oldlv || 1, '->', newlv, this.item.part)
-      this.$root.$emit('update:defenseLevel', newlv, this.item.part)
+      let part = ['head', 'chest', 'arms', 'waist', 'legs'][this.item.part]
+      //console.log("EquipmentItem.vue::changed %s selectedLevel: %s -> %s", part, oldlv, newlv)
+      //console.log('Current stored part level: %d', this.$store.getters.armorLevelKindOf(part))
+      this.$store.dispatch('setArmorLevel', {part: part, level: newlv})
+      //console.log('Saved to stored part level: %d', this.$store.getters.armorLevelKindOf(part))
     },
   },
 
   created() {
-    this.getData('mock_data.json')
+    this.initialize()
   },
 
   mounted() {
-    //
+    this.$store.subscribeAction({
+      after: (action, state) => {
+        if ('setEquipment' === action.type && this.$props.type === action.payload.property) {
+          this.oldItem = this.item
+          this.item = state[action.payload.property].data
+          if (this.isArmor(this.$props.type)) {
+            this.selectedLevel = state[action.payload.property].level || 1
+          }
+          //console.log('EquipmentItem.vue::After changing %s: ', this.$props.type, this.oldItem, this.item)
+        }
+      }
+    })
   },
 
   computed: {
-    //
-  },
-
-  filters: {
-    itemType: (value, equipType) => {
-      let equipTypeSet = {
-          weapon: [
-            '大剣',
-            '太刀',
-            '片手剣',
-            '双剣',
-            '鎚',// 'ハンマー',
-            '狩猟笛',
-            '槍',// 'ランス',
-            '銃槍',// 'ガンランス',
-            '剣斧',// 'スラッシュアックス',
-            '盾斧',// 'チャージアックス',
-            '操虫棍',
-            '軽弩',// 'ライトボウガン',
-            '重弩',// 'ヘビィボウガン',
-            '弓'
-          ],
-          armor: [
-            '頭部',
-            '胴部',
-            '腕部',
-            '腰部',
-            '脚部'
-          ],
-          talisman: [ '護石' ],
+    equipmentType() {
+      switch (this.$props.type) {
+        case 'weapon':
+          return this.item && Object.prototype.hasOwnProperty.call(this.item, 'type')
+            ? this.getEquipType('weapon', this.item.type)
+            : this.labels.weapon
+        case 'talisman':
+          return this.item && Object.prototype.hasOwnProperty.call(this.item, 'name')
+            ? this.getEquipType('talisman', 0)
+            : this.labels.talisman
+        default:
+          return this.item && Object.prototype.hasOwnProperty.call(this.item, 'part')
+            ? this.getEquipType('armor', this.item.part)
+            : this.labels[this.$props.type]
       }
-      //console.log(value, equipTypeSet[equipType][value])
-      return equipTypeSet[equipType][value]
+    },
+    hasSlot() {
+      return this.item && (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
+    },
+    levelItems() {
+      return this.item ? Array.from(Array(this.item.max_level), (v, k) => k + 1): []
     },
   },
 
   methods: {
     openDialog: function (target) {
-      //console.log(`EquipmentItem.vue::beforeEmit.open:${target}`, this.item)
+      //console.log(`EquipmentItem.vue::beforeEmit.open:${target}`, this.$props.type, this.item, this.$store.getters.weaponsKindOf(this.$props.type))
+      if (!this.item || !this.item.id) {
+        switch (this.$props.type) {
+          case 'weapon':
+            this.item = {id: 0, name: '', type: 0, rarity: 0, attack: 0, affinity: 0, element1: 0, element2: 0, slot1: 0, slot2: 0, slot3: 0}
+            break
+          case 'talisman':
+            this.item = {id: 0, name: '', rarity: 0, slot1: 0, slot2: 0, slot3: 0}
+            break
+          default:
+            //this.item = {id: 0, name: '', part: ['head', 'chest', 'arms', 'waist', 'legs'].indexOf(this.$props.type), rarity: 0, defense: 0, slot1: 0, slot2: 0, slot3: 0}
+            this.item = {id: 0, name: '', part: this.getArmorPartIndex(this.$props.type), rarity: 0, defense: 0, slot1: 0, slot2: 0, slot3: 0}
+            break
+        }
+      }
       this.$root.$emit(`open:${target}`, this.item)
     },
-    getData: function(path) {
-      const instance = this.createAxios()
-      instance.get(path)
-      .then(response => {
-        let items = response.data[`${this.$props.type}s`].filter(item => item.id == Number(this.$props.id))
-        if (items) {
-          this.item = items.shift()
-          this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
-        } else {
-          this.item = {
-            name: '-', rarity: 0, 
-          }
+    initialize: function () {
+      if (this.$props.id) {
+        this.item = this.$store.getters.equipmentKindOf(this.$props.type)
+        if (this.isArmor(this.$props.type)) {
+          this.selectedLevel = this.$store.getters.armorLevelKindOf(this.item.part)
         }
-        //console.log('EquipmentItem.vue::getData:', this.item)
-      })
-      .catch(error => {
-        console.error(`Failure to retrieve equipment data. (${error})`)
-      })
-      .finally(() => {
-        this.sleep(300).then(() => {
+        //this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
+        /*
+        let tableName = ['head', 'chest', 'arms', 'waist', 'legs'].includes(this.$props.type) ? 'armors': `${this.$props.type}s`
+        console.log('init::_2', tableName)
+        this.retrieveData(tableName, () => {
+          let items = this.$store.state[tableName].filter(item => item.id == Number(this.$props.id))
+          console.log('init::_3', items)
+          if (items) {
+            this.$store.state[this.$props.type].data = items.shift()
+            this.item = this.$store.state[this.$props.type].data.concat()
+            this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
+          } else {
+            this.item = {
+              name: '-', rarity: 0, 
+            }
+          }
           this.loading = false
         })
-      })
+        */
+        //this.loading = false
+      //} else {
+        //this.item = null
+        //this.loading = false
+      }
+      this.loading = false
+      //console.log('init::_4', this.$props.type, this.$props.id, this.item)
     },
-  },
+ },
 
 }
 </script>

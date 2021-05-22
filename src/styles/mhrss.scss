@@ -188,9 +188,13 @@
         .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
       }
     }
+    /* Skill Detail Dialog */
+    .skill-desc {
+      .theme--dark &  { border-right: thin solid rgba(#ffffff, 0.06); }
+      .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
+    }
   }
 }
-
 /* Talisman Component */
 .v-talisman {
   position: relative;
@@ -204,4 +208,7 @@
     }
   }
 }
-
+/* Others */
+.no-hover-effect:hover {
+  background: none !important;
+}

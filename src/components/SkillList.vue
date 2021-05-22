@@ -134,10 +134,26 @@ export default {
   }),
 
   created() {
-    this.getData('index.php?tbl=skills')
+    if (this.$store.state.skills.length == 0) {
+      //console.log('DBからデータを取得してストアへキャッシュ')
+      this.getData('index.php?tbl=skills')
+    } else {
+      this.sleep(1).then(() => {
+        //console.log(`SkillList.vue::created:`, this.$store.state.skills)
+        //console.log('ストアにデータがあるのでキャッシュを読み込む', this.$store.state.skills.length)
+        this.skills = this.$store.state.skills
+        this.skills.sort((a, b) => {
+          return a.ruby_name.localeCompare(b.ruby_name, 'ja')
+        })
+        this.loading = false
+      }).then(() => {
+        this.adjustCellHeight()
+      })
+    }
   },
 
   mounted() {
+    //
   },
 
   computed: {
@@ -145,29 +161,24 @@ export default {
   },
 
   methods: {
-    getData: function(path) {
-      //const instance = this.createAxios('//dev2.ka2.org/mhr/')// <- on the XAMPP only
-      const instance = this.createAxios('//ka2.org/mhr/')// for production
-      instance.get(path)
+    getData: async function(path) {
+      const instance = this.createAxios('//dev2.ka2.org/mhr/')// <- on the XAMPP only
+      //const instance = this.createAxios('//ka2.org/mhr/')// for production
+      await instance.get(path)
       .then(response => {
-        this.skills = response.data
-        this.skills.sort((a, b) => {
-            /*
-            let an = a.name.toUpperCase(),
-                bn = b.name.toUpperCase()
-            if (an < bn) return -1
-            if (an > bn) return 1
-            return 0
-            */
-            return a.name.localeCompare(b.name, 'ja')
+        response.data.sort((a, b) => {
+          return a.ruby_name.localeCompare(b.ruby_name, 'ja')
         })
+        this.$store.dispatch('initData', {property: 'skills', data: response.data})
+        //this.$store.state.skills = this.skills
         //console.log('SkillList.vue::getData:', response.data, this.skills)
       })
       .catch(error => {
         console.error(`Failure to retrieve skill data. (${error})`)
       })
       .finally(() => {
-        this.sleep(1000).then(() => {
+        this.sleep(1).then(() => {
+          this.skills  = this.$store.state.skills
           this.loading = false
         }).then(() => {
           this.adjustCellHeight()

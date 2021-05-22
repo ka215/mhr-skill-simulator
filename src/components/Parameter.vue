@@ -23,10 +23,9 @@
           class="col-6 pa-0 text-right"
         >
           <template v-if="$props.name === 'element1' && !$props.elementName">
-            なし
+            {{ labels.noElement }}
           </template>
-          <template v-else-if="$props.name === 'element2' && !$props.elementName">
-          </template>
+          <template v-else-if="$props.name === 'element2' && !$props.elementName"></template>
           <template v-else>
             {{ $props.elementName }}属性
           </template>
@@ -60,12 +59,14 @@
       >
         <template v-if="!/^element(1|2)$/.test($props.name) || $props.baseValue != 0">
           {{ fixedValue }}
-          <template v-if="$props.name === 'affinity'">%</template>
+          <template v-if="$props.name === 'affinity'">
+            <v-icon x-small class="text--secondary">mdi-percent-outline</v-icon>
+          </template>
         </template>
       </div>
     </v-list-item>
     <template
-      v-if="!/^element(1|2)$/.test($props.name) || $props.baseValue != 0"
+      v-if="!$props.noCorrected && (!/^element(1|2)$/.test($props.name) || $props.baseValue != 0)"
     >
       <v-list-item
         class="d-flex justify-space-between ma-0 px-2 py-0"
@@ -130,11 +131,15 @@ export default {
     },
     baseValue: {
       Type: Number,
-      default: 0
+      default: null
     },
     elementName: {
       Type: String,
       default: null
+    },
+    noCorrected: {
+      Type: Boolean,
+      default: false
     },
   },
 
@@ -145,12 +150,30 @@ export default {
       element1: '属性',
       element2: '',
       affinity: '会心率',
+      defense_bonus: '防御力ボーナス',
+      sharpness: '斬れ味',
+      shelling_type: '砲撃タイプ',
+      shelling_level: '砲撃レベル',
+      melody_effects: '旋律効果',
+      phial_type: '装着ビン', 
+      phial_element: 'ビン属性',
+      phial_element_value: 'ビン属性値',
+      kinsect_level: '猟虫レベル',
+      deviation: 'ブレ',
+      recoil: '反動',
+      reload: 'リロード',
+      mods: 'パーツ',
+      cluster_bomb_type: '拡散弾タイプ',
+      special_ammo: '特殊弾',
+      arc_shot: '曲射',
+      charge_shot: '溜め攻撃',
       defense:  '防御力',
       fire:     '火耐性',
       water:    '水耐性',
       thunder:  '雷耐性',
       ice:      '氷耐性',
       dragon:   '龍耐性',
+      noElement: 'なし',
       correctedSkill: 'スキルによる補正',
       correctedBonus: '武器の防御力ボーナス',
       correctedItem:  'アイテム効果',
@@ -175,32 +198,35 @@ export default {
   }),
 
   created() {
-    //
+    if (this.$store.getters.equipmentExists('weapon')) {
+      this.correctedValues.bonus = 0
+      this.correctedValues.bonus += this.$store.getters.equipmentKindOf('weapon', 'defense_bonus')
+    }
   },
 
   mounted() {
-    this.$root.$on(`update:${this.$props.name}BySkill`, (value) => {
-      console.log(`Parameter.vue::update:${this.$props.name}BySkill`, value)
-      this.correctedValues.skill = value
+    this.$store.subscribeAction({
+      after: (action) => {
+        switch (action.type) {
+          case 'setEquipment':
+            if (action.payload.property === 'weapon') {
+              this.correctedValues.bonus = 0
+              this.correctedValues.bonus += this.$store.getters.equipmentKindOf('weapon', 'defense_bonus')
+            }
+            break
+          case 'setPlayerData':
+            if (action.payload.property === 'items' && /^(attack|defense)$/.test(this.$props.name)) {
+              this.correctedValues.item = 0
+              let items = action.payload.value.filter(item => item.target === this.$props.name)
+              if (items.length > 0) {
+                //console.log('Parameter.vue::$store.subscribeAction:setPlayerData:', action.payload.value, this.$props.name, items)
+                this.correctedValues.item += items.map(elm => elm.value).reduce((acc, cur) => acc + cur, 0)
+              }
+            }
+            break
+        }
+      }
     })
-    if (/^defense$/.test(this.$props.name)) {
-      this.$root.$on('update:defenseBonus', (value) => {
-        console.log('Parameter.vue::update:defenseBonus', value)
-        this.correctedValues.bonus = value
-      })
-      this.$root.$on('update:defenseLevel', (...args) => {
-        const [lv, part] = args,
-              parts = ['head', 'chest', 'arm', 'waist', 'leg', ]
-        //console.log('Parameter.vue::update:defenseLevel', args, lv, parts[part])
-        this.correctedValues[parts[part]] = (lv - 1) * 2
-      })
-    }
-    if (/^(attack|defense)$/.test(this.$props.name)) {
-      this.$root.$on(`update:${this.$props.name}ByItem`, (value) => {
-        console.log(`Parameter.vue::update:${this.$props.name}ByItem`, value)
-        this.correctedValues.item = value
-      })
-    }
   },
 
   filters: {
@@ -217,7 +243,11 @@ export default {
 
   computed: {
     fixedValue () {
-      return parseInt(this.$props.baseValue, 10) + Object.values(this.correctedValues).reduce((acc, cur) => acc + cur)
+      if (this.$props.baseValue != null) {
+        return parseInt(this.$props.baseValue, 10) + Object.values(this.correctedValues).reduce((acc, cur) => acc + cur)
+      } else {
+        return '-'
+      }
     },
   },
 
