@@ -64,15 +64,17 @@ final class CustomerCore extends abstractClass {
             ],
         ];
         $this->the_request = match( $this->request_method ) {
-            'GET'    => filter_input_array( INPUT_GET,    $options ),
             'POST'   => filter_input_array( INPUT_POST,   $options ),
+            'GET'    => filter_input_array( INPUT_GET,    $options ),
+            'PUT'    => filter_input_array( INPUT_POST,   $options ),
+            'DELETE' => filter_input_array( INPUT_POST,   $options ),
             'COOKIE' => filter_input_array( INPUT_COOKIE, $options ),
         };
         if ( ! $this->the_request ) {
             $this->the_request = json_decode( file_get_contents( 'php://input' ), true );
         }
         if ( ! $this->the_request ) {
-            die( 'Request not found.' );
+            $this->app_die( 'Request not found.' );
         }
     }
 
@@ -86,14 +88,35 @@ final class CustomerCore extends abstractClass {
         $response = null;
         switch ( $this->request_method ) {
             case 'POST':
+                $this->logger( [ $this->request_method, $this->the_request ] );
+                if ( ! isset( $this->the_request['params'] ) ) {
+                    $this->app_die( 'Invalid request.' );
+                }
+                if ( array_key_exists( 'table', $this->the_request['params'] ) ) {
+                    $target_table = $this->the_request['params']['table'];
+                    if ( ! $this->table_exists( $target_table ) ) {
+                        $this->app_die( 'That table does not exist.' );
+                    }
+                } else {
+                    $this->app_die( 'Table not specified.' );
+                }
+                if ( array_key_exists( 'data', $this->the_request['params'] ) ) {
+                    if ( $this->insert_data( $target_table, $this->the_request['params']['data'] ) ) {
+                        $response = [ 'state' => 201, 'id' => $this->last_insert_id, 'message' => '[201 Created] The data has been inserted successfully.' ];
+                    } else {
+                        $response = [ 'state' => 202, 'message' => '[202 Accepted] Failed to insert data.' ];
+                    }
+                } else {
+                    $this->app_die( 'No data to insert.' );
+                }
                 break;
             case 'GET':
                 if ( array_key_exists( 'tbl', $this->the_request ) ) {
                     if ( ! $this->table_exists( $this->the_request['tbl'] ) ) {
-                        die( 'That table does not exist.' );
+                        $this->app_die( 'That table does not exist.' );
                     }
                 } else {
-                    die( 'Table not specified.' );
+                    $this->app_die( 'Table not specified.' );
                 }
                 $conditions = [];
                 if ( array_key_exists( 'id', $this->the_request ) && $this->the_request['id'] ) {
@@ -106,17 +129,61 @@ final class CustomerCore extends abstractClass {
                     //
                 }
                 $response = $this->retrieve_data( $this->the_request['tbl'], $conditions, $use_named_parameters );
-                $response = $this->check_to_cast( $response );
+                break;
+            case 'PUT':
+                // $this->logger( [ $this->request_method, $this->the_request ] );
+                if ( ! isset( $this->the_request['params'] ) ) {
+                    $this->app_die( 'Invalid request.' );
+                }
+                if ( array_key_exists( 'table', $this->the_request['params'] ) ) {
+                    $target_table = $this->the_request['params']['table'];
+                    if ( ! $this->table_exists( $target_table ) ) {
+                        $this->app_die( 'That table does not exist.' );
+                    }
+                } else {
+                    $this->app_die( 'Table not specified.' );
+                }
+                if ( array_key_exists( 'data', $this->the_request['params'] ) ) {
+                    $data = $this->the_request['params']['data'];
+                    $conditions = array_key_exists( 'conditions', $this->the_request['params'] ) ? $this->the_request['params']['conditions'] : [];
+                    $operator = array_key_exists( 'operator', $this->the_request['params'] ) ? $this->the_request['params']['operator'] : 'and';
+                    //$this->logger( [ $target_table, $data, $conditions, $operator ] );
+                    if ( $this->update_data( $target_table, $data, $conditions, $operator ) ) {
+                        $response = [ 'state' => 201, 'message' => '[201 Created] The data has been updated successfully.' ];
+                    } else {
+                        $response = [ 'state' => 202, 'message' => '[202 Accepted] Failed to update data.' ];
+                    }
+                } else {
+                    $this->app_die( 'No data to insert.' );
+                }
+                break;
+            case 'DELETE':
+                $this->logger( [ $this->request_method, $this->the_request ] );
                 break;
             case 'COOKIE':
             default:
                 break;
         }
         if ( $response ) {
+            $response = $this->check_to_cast( $response );
             $this->return_response( $response );
         } else {
             $this->return_response( [] );
         }
+    }
+
+    /**
+     * Die with responses
+     *
+     * @access protected
+     */
+    protected function app_die( string $message ): void {
+        $response_data = [
+            'message' => $message,
+            'server'  => $_SERVER,
+            'request' => $_REQUEST,
+        ];
+        $this->return_response( $response_data );
     }
 
     /**
@@ -126,19 +193,20 @@ final class CustomerCore extends abstractClass {
      */
     protected function return_response( array $data ): void {
         if ( isset( $_SERVER['HTTP_ORIGIN'] ) ) {
-            $allow_origin_regex = '@^https?://(localhost:8080|127\.0\.0\.1|(.*)?ka2.org)@';
+            $allow_origin_regex = '@^https?://(.*)?ka2.org(|:81)@';// '@^https?://(localhost:8080|127\.0\.0\.1|(.*)?ka2.org)@';
             $origin = preg_match( $allow_origin_regex, $_SERVER['HTTP_ORIGIN'] ) ? $_SERVER['HTTP_ORIGIN'] : '*';
-            $allow_methods = 'GET, POST, OPTIONS';
-            $allow_credentials = 'true';
+            $allow_methods = $origin === '*' ? 'GET, OPTIONS' : 'GET, POST, PUT, DELETE, OPTIONS';
+            $allow_credentials = $origin === '*' ? 'false' : 'true';
         } else {
             $origin = '*';
-            $allow_methods = 'GET';
+            $allow_methods = 'GET, OPTIONS';
             $allow_credentials = 'false';
         }
+        //$this->logger( [ $origin, $allow_methods, $allow_credentials, $this->request_method, $this->the_request ] );
         header( 'Access-Control-Allow-Origin: '. $origin );
         header( 'Access-Control-Allow-Methods: '. $allow_methods );
         header( 'Access-Control-Allow-Credentials: '. $allow_credentials );
-        header( 'Access-Control-Allow-Headers: Origin, Content-Type, Accept' );
+        header( 'Access-Control-Allow-Headers: X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept' );
         header( 'Access-Control-Expose-Headers: X-Custom-header', false );
         header( 'Content-Type: application/json; charset=utf-8' );
         
@@ -166,7 +234,7 @@ final class CustomerCore extends abstractClass {
                 }
             }
         } else {
-            $data = $this->_cast_value( $_val );
+            $data = $this->_cast_value( $data );
         }
         return $data;
     }
@@ -181,7 +249,7 @@ final class CustomerCore extends abstractClass {
             case is_bool( $value ):
                 return (bool)$value;
             case is_numeric( $value ):
-                if ( is_float( $value ) ) {
+                if ( is_float( $value + 0 ) ) {
                     return (float)$value;
                 } else {
                     return (int)$value;

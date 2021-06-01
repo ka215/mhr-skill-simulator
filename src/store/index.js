@@ -3,53 +3,58 @@ import Vuex from "vuex"
 
 Vue.use(Vuex)
 
-const state = {
-  weapons: [],
-  armors: [],
-  talismans: [],
-  decorations: [],
-  skills: [],
-  skill_evaluation: [],
-  weapon_meta: [],
-  ammo: [],
-  weapon: {
-    data: {},
-    slots: [],
-  },
-  head: {
-    data: {},
-    level: 1,
-    slots: [],
-  },
-  chest: {
-    data: {},
-    level: 1,
-    slots: [],
-  },
-  arms: {
-    data: {},
-    level: 1,
-    slots: [],
-  },
-  waist: {
-    data: {},
-    level: 1,
-    slots: [],
-  },
-  legs: {
-    data: {},
-    level: 1,
-    slots: [],
-  },
-  talisman: {
-    data: {},
-    slots: [],
-  },
-  player: {
-    gender: 'female',
-    items: [],
-  },
+const getInitialState = () => {
+  return {
+    weapons: [],
+    armors: [],
+    talismans: [],
+    decorations: [],
+    skills: [],
+    skill_evaluation: [],
+    weapon_meta: [],
+    ammo: [],
+    weapon: {
+      data: {},
+      slots: {},
+    },
+    head: {
+      data: {},
+      level: 1,
+      slots: {},
+    },
+    chest: {
+      data: {},
+      level: 1,
+      slots: {},
+    },
+    arms: {
+      data: {},
+      level: 1,
+      slots: {},
+    },
+    waist: {
+      data: {},
+      level: 1,
+      slots: {},
+    },
+    legs: {
+      data: {},
+      level: 1,
+      slots: {},
+    },
+    talisman: {
+      data: {},
+      slots: {},
+    },
+    aggs: {},
+    player: {
+      gender: 'female',
+      items: [],
+    },
+  }
 }
+
+const state = () => getInitialState()
 
 const getters = {
   // Get all weapons of the specified weapon type
@@ -98,6 +103,21 @@ const getters = {
     }
     return state[part].level
   },
+  // Get the slot status of the currently equipped item
+  // (: 現在装備中の装備のスロット状況を取得
+  currentSlotsKindOf: (state) => (kind) => {
+    return state[kind].slots
+  },
+  // Get the skills granted by decoration in slots
+  // (: スロットの装飾品によって付与されているスキルを取得
+  currentSkillsInSlots: (state) => (kind) => {
+    let skills = []
+    for (let [, decoId] of Object.entries(state[kind].slots)) {
+      let decoration = state.decorations.find(item => item.id === decoId)
+      skills = skills.concat(Object.keys(decoration.skills))
+    }
+    return skills
+  },
   // Get the player's specified data
   // (: プレイヤーの指定データを取得
   playerDataOf: (state) => (target) => {
@@ -109,6 +129,11 @@ const mutations = {
   // Usage: $store.commit('setItems', {property: 'weapons', data: response.data})
   setItems: (state, payload) => {
     state[payload.property] = payload.data
+  },
+  // Usage: $store.commit('addItem', {property: 'talismans', data: newTalisman})
+  addItem: (state, payload) => {
+    //console.log('$store.commit::addItem:', payload)
+    state[payload.property].push(payload.data)
   },
   // Usage: $store.commit('updateEquipItem', {property: 'head', data: {...}, slots: []})
   updateEquipItem: (state, payload) => {
@@ -126,9 +151,32 @@ const mutations = {
   updateArmorLevel: (state, payload) => {
     state[payload.part].level = payload.level
   },
+  // Usage: $store.commit('updateAggSkills', {aggrigation: {}})
+  updateAggSkills: (state, payload) => {
+    state.aggs = payload.aggrigation
+  },
+  // Usage: $store.commit('clearEquipments', {kind: 'all'})
+  clearEquipments: (state, payload) => {
+    if (payload.kind === 'all') {
+      ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman'].forEach(key => {
+        //console.log(state[key], getInitialState()[key])
+        state[key] = Object.assign(state[key], getInitialState()[key])
+      })
+    } else {
+      Object.assign(state[payload.kind], getInitialState()[payload.kind])
+    }
+  },
   // Usage: $store.commit('updatePlayerData', {property: 'gender', value: 'female'})
   updatePlayerData: (state, payload) => {
     state.player[payload.property] = payload.value
+  },
+  // Usage: $store.commit('resetState')
+  resetState: (state) => {
+    Object.assign(state, getInitialState())
+  },
+  // Usage: $store.commit('resetMasterData', {property: 'talismans'})
+  resetMasterData: (state, payload) => {
+    Object.assign(state[payload.property], getInitialState()[payload.property])
   },
 }
 
@@ -136,14 +184,29 @@ const actions = {
   initData: ({ commit }, payload) => {
     commit('setItems', payload)
   },
+  addData: ({ commit }, payload) => {
+    commit('addItem', payload)
+  },
   setEquipment: ({ commit }, payload) => {
     commit('updateEquipItem', payload)
   },
   setArmorLevel: ({ commit }, payload) => {
     commit('updateArmorLevel', payload)
   },
+  setAggSkills: ({ commit }, payload) => {
+    commit('updateAggSkills', payload)
+  },
+  removeEquipment: ({ commit }, payload) => {
+    commit('clearEquipments', payload)
+  },
   setPlayerData: ({ commit }, payload) => {
     commit('updatePlayerData', payload)
+  },
+  resetState: ({ commit }) => {
+    commit('resetState')
+  },
+  resetMasterData: ({ commit }, payload) => {
+    commit('resetMasterData', payload)
   },
 }
 

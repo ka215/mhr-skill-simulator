@@ -19,12 +19,20 @@
       <v-btn
         class="btn-default"
         elevation="0"
-        to="talisman"
+        to="talismans"
       >{{ labels.edit }}</v-btn>
       <v-spacer />
       <v-btn
+        :class="['grey', {'darken-2': $vuetify.theme.isDark}, {'lighten-1': !$vuetify.theme.isDark}]"
+        elevation="0"
+        :disabled="!isEquipExists"
+        @click="removeEquipments"
+      >{{ labels.reset }}</v-btn>
+      <v-btn
         class="btn-primary"
         elevation="0"
+        :disabled="!isEquipExists"
+        @click="saveMyset"
       >{{ labels.save }}</v-btn>
     </v-card-actions>
     <template>
@@ -51,7 +59,8 @@ export default {
   data: () => ({
     labels: {
       title: '装備・装飾品',
-      edit: '護石管理',
+      edit: '護石登録',
+      reset: '全部外す',
       save: 'マイセット登録',
     },
     currentIds: {
@@ -89,19 +98,38 @@ export default {
       */
       after: (action/*, state*/) => {
         if ('setEquipment' === action.type) {
-          let oldId = this.currentIds[action.payload.property],
-              newId = action.payload.data.id
-          if (oldId != newId) {
-            this.currentIds[action.payload.property] = newId
-            //console.log('Equipment.vue::After changing %s: %s -> %s', action.payload.property, oldId, newId)
+          if (Object.prototype.hasOwnProperty.call(action.payload, 'data')) {
+            let oldId = this.currentIds[action.payload.property],
+                newId = action.payload.data.id
+            if (oldId != newId) {
+              this.currentIds[action.payload.property] = newId
+              //console.log('Equipment.vue::After changing %s: %s -> %s', action.payload.property, oldId, newId)
+            }
           }
         }
       }
     })
   },
 
+  computed: {
+    isEquipExists: function() {
+      return this.$store.getters.equipmentExists()
+    },
+  },
+
   methods: {
-    //
+    removeEquipments: function() {
+      ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman'].forEach(kind => {
+        let payload = {property: kind, data: {}, slots: {}}
+        if (this.isArmor(kind)) {
+          payload.level = null
+        }
+        this.$store.dispatch('setEquipment', payload)
+      })
+    },
+    saveMyset: function() {
+      alert('Not available yet.')
+    },
   },
 
 }

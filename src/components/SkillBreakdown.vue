@@ -30,11 +30,15 @@
                 <td
                   :class="levelTextClass(skill, lv)"
                 >Lv{{ displayLevel(skill, lv) }}</td>
-                <td class="bd-0"></td>
+                <td
+                  :class="`bd-0 ${classInSlot(skill, 0)}`"
+                >
+                  {{ getSkillLv(skill, 0) }}
+                </td>
                 <td
                   v-for="n in 6"
                   :key="n"
-                  :class="`bd-${n}`"
+                  :class="`bd-${n} ${classInSlot(skill, n)}`"
                 >
                   {{ getSkillLv(skill, n) }}
                 </td>
@@ -67,6 +71,12 @@
         </tfoot>
       </template>
     </v-simple-table>
+    <v-row v-if="Object.keys(summary).length > 0">
+      <v-col cols="12" class="d-flex justify-end mt-2">
+        <v-icon small class="grey--text mr-1">mdi-alert-box-outline</v-icon>
+        <span class="text-caption text--secondary mr-1" v-html="labels.hint"></span>
+      </v-col>
+    </v-row>
     <template>
       <SkillDetail />
     </template>
@@ -89,10 +99,18 @@ export default {
       th: [ '発動スキル', '武器', '頭部', '胸部', '腕部', '腰部', '脚部', '護石' ],
       noData: 'データがありません。装備を選択してください。',
       noSkill: '発動しているスキルはありません。',
+      hint: 'スキルレベルが<span class="green--text">緑色</span>で表示されているものは、装飾品によって付与・強化されているスキルです',
     },
     skills: null,
     summary: null,
   }),
+
+  watch: {
+    summary: function(value) {
+      //console.log('SkillBreakdown.vue::watch.summary:', value)
+      this.$store.dispatch('setAggSkills', {aggrigation: value})
+    }
+  },
 
   created() {
     if (this.$store.getters.equipmentExists) {
@@ -135,6 +153,17 @@ export default {
       }
       return lv
     },
+    classInSlot: function (skill, part) {
+      let kinds = ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman']
+      if (skill in this.skills[kinds[part]]) {
+        //console.log('classInSlot:', skill, this.$store.getters.currentSlotsKindOf(kinds[part]), this.$store.getters.currentSkillsInSlots(kinds[part]))
+        if (this.$store.getters.currentSkillsInSlots(kinds[part]).includes(skill)) {
+          return this.$vuetify.theme.isDark ? 'green--text text--accent-4': 'green--text text--darken-2'
+        } else {
+          return ''
+        }
+      }
+    },
     getSkillLv: function (skill, part) {
       let kinds = ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman']
       if (skill in this.skills[kinds[part]]) {
@@ -155,7 +184,24 @@ export default {
           pairs
       //console.log('SkillBreakdown.vue::setEquipment.after: Changed "%s"', kind)
       kinds.forEach(v => {
-        currentSkills[v] = Object.prototype.hasOwnProperty.call(this.$store.state[v].data, 'skills') ? this.$store.state[v].data.skills: {}
+        // Get builtin skills from equipment item
+        currentSkills[v] = Object.prototype.hasOwnProperty.call(this.$store.state[v].data, 'skills') ? Object.assign({}, this.$store.state[v].data.skills): {}
+        // Get skills from decorations attatched slots
+        if (Object.keys(this.$store.state[v].slots).length > 0) {
+          for (let [, _id] of Object.entries(this.$store.state[v].slots)) {
+            if (_id == null) {
+              continue
+            }
+            let decorationData = this.$store.getters.itemsById('decorations', _id),
+                skillName = Object.keys(decorationData.skills).join()
+            if (Object.prototype.hasOwnProperty.call(currentSkills[v], skillName)) {
+              currentSkills[v][skillName]++
+            } else {
+              currentSkills[v][skillName] = 1
+            }
+            //console.log('SkillBreakdown.vue::createBreakdown:',key, _id, decorationData)
+          }
+        }
       })
       for (const [, obj] of Object.entries(currentSkills)) {
         for (const [_skill, _lv] of Object.entries(obj)) {

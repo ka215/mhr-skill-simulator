@@ -78,6 +78,9 @@ final class bulkCore extends abstractClass {
                     case $_type === 'bit(1)':
                         $line[$_idx] = (bool)preg_match( '/^(true|1)$/i', $_val);
                         break;
+                    case preg_match( '@^(float|double)@', $_type ):
+                        $line[$_idx] = (float)$_val;
+                        break;
                     case preg_match( '@^(varchar|text)@', $_type ):
                     default:
                         $line[$_idx] = (string)$_val;
@@ -266,6 +269,7 @@ final class bulkCore extends abstractClass {
                 'worth'         => [ 'type' => 'float(5,2) unsigned', 'pattern' => '^\d{1,3}\.?\d{,2}$', 'label' => '評価値' ],
                 'emission_type' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '排出タイプ' ],
                 'emissions'     => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '排出数' ],
+                'disabled'      => [ 'type' => 'bit(0)',              'pattern' => '^(TRUE|true|True|FALSE|false|False|0|1)?$', 'label' => '無効フラグ' ],
             ],
             'decorations' => [
                 'id'                => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '装飾品ID' ],
@@ -291,8 +295,8 @@ final class bulkCore extends abstractClass {
                 'max_lv'     => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '最大レベル' ],
                 'rarity'     => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'レア度' ],
                 'slot'       => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スロット' ],
-                'score'      => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => 'スコア' ],
-                'evaluation' => [ 'type' => 'tinyint(4) unsigned', 'pattern' => '^\d{1,4}$', 'label' => '評価' ],
+                'score'      => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => 'スコア' ],
+                'evaluation' => [ 'type' => 'int(11) unsigned',    'pattern' => '^[0-9]+$',  'label' => '評価' ],
             ],
             default => [],
         };
@@ -305,19 +309,26 @@ final class bulkCore extends abstractClass {
         }
         $talismans = $this->retrieve_data( 'talismans', [[ 'worth', '=', '0' ]] );
         $skill_evaluation = $this->retrieve_data( 'skill_evaluation', [] );
+        $slot_base_worth = 8.33 * 1.6491;
         foreach ( $talismans as $item ) {
-            $evaluations = [];
-            $slots = (int)$item['slot1'] + (int)$item['slot2'] + (int)$item['slot3'];
-            if ( $slots > 0 ) {
-                $evaluations[] = $slots * 5.56;
+            $evaluations = [ 1 ];
+            $slots = [(int)$item['slot1'], (int)$item['slot2'], (int)$item['slot3']];
+            foreach( $slots as $slot ) {
+                $evaluations[] = match( $slot ) {
+                    3 => $slot_base_worth * 1.37,
+                    2 => $slot_base_worth * 1.21,
+                    1 => $slot_base_worth * 1.06,
+                    default => 0,
+                };
             }
             $skills = json_decode( $item['skills'], true );
             foreach ( $skills as $skill => $lv ) {
-                $_se = array_filter( $skill_evaluation, function( $elm ) use ( &$skill ) { return $elm['name'] === $skill; } );
+                $_se = array_filter( $skill_evaluation, function( $elm ) use ( $skill ) { return $elm['name'] === $skill; } );
                 if ( $_se ) {
                     $_se = array_shift( $_se );
                     $_bonus = (int)$lv == (int)$_se['max_lv'] ? 1.1 : 1;
-                    $evaluations[] = (int)$_se['evaluation'] * (int)$_se['slot'] * (int)$lv * $_bonus;
+                    //$evaluations[] = ((int)$_se['score'] / 100) * (1 + ((int)$_se['slot'] * (int)$lv / 10)) * $_bonus;
+                    $evaluations[] = ((int)$_se['evaluation'] / 100) * (1 + ((int)$_se['slot'] - 1) / 10) * (int)$lv * $_bonus;
                 }
             }
             $worth = array_sum( $evaluations );

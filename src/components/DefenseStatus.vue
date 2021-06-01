@@ -2,15 +2,26 @@
   <v-list
     subheader
   >
-    <v-subheader
-      class="sub-headline--text"
-    >{{ labels.title }}</v-subheader>
-    <Parameter name="defense" :baseValue="totals.defense" />
-    <Parameter name="fire"    :baseValue="totals.fire_resistance" />
-    <Parameter name="water"   :baseValue="totals.water_resistance" />
-    <Parameter name="thunder" :baseValue="totals.thunder_resistance" />
-    <Parameter name="ice"     :baseValue="totals.ice_resistance" />
-    <Parameter name="dragon"  :baseValue="totals.dragon_resistance" />
+    <v-list-group
+      v-model="expanded"
+      no-action
+    >
+      <template v-slot:activator>
+        <v-list-item-content>
+          <v-list-item-title
+            class="sub-headline--text"
+          >{{ labels.title }}</v-list-item-title>
+        </v-list-item-content>
+      </template>
+      <v-list-item-content>
+        <Parameter name="defense" :baseValue="totals.defense" />
+        <Parameter name="fire"    :baseValue="totals.fire_resistance" />
+        <Parameter name="water"   :baseValue="totals.water_resistance" />
+        <Parameter name="thunder" :baseValue="totals.thunder_resistance" />
+        <Parameter name="ice"     :baseValue="totals.ice_resistance" />
+        <Parameter name="dragon"  :baseValue="totals.dragon_resistance" />
+      </v-list-item-content>
+    </v-list-group>
   </v-list>
 </template>
 
@@ -35,7 +46,8 @@ export default {
       'thunder_resistance': 0,
       'ice_resistance': 0,
       'dragon_resistance': 0,
-    }
+    },
+    expanded: true,
   }),
 
   created() {

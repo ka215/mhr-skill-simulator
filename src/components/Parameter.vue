@@ -113,6 +113,22 @@
         >{{ correctedValues.item | dispCorrect }}</v-list-item-title>
       </v-list-item>
     </template>
+    <template
+      v-if="/^(fire|water|thunder|ice|dragon)$/.test($props.name)"
+    >
+      <v-list-item
+        class="d-flex justify-space-between ma-0 px-2 py-0"
+        style="min-height: 1.5em;"
+        dense
+      >
+        <v-list-item-title
+          :class="correctedLabelClass(correctedValues.series)"
+        >{{ labels.correctedSeries }}</v-list-item-title>
+        <v-list-item-title
+          :class="correctedValueClass(correctedValues.series)"
+        >{{ correctedValues.series | dispCorrect }}</v-list-item-title>
+      </v-list-item>
+    </template>
   </v-list-item-content>
 </template>
 
@@ -174,9 +190,10 @@ export default {
       ice:      '氷耐性',
       dragon:   '龍耐性',
       noElement: 'なし',
-      correctedSkill: 'スキルによる補正',
-      correctedBonus: '武器の防御力ボーナス',
-      correctedItem:  'アイテム効果',
+      correctedSkill:  'スキルによる補正',
+      correctedBonus:  '武器の防御力ボーナス',
+      correctedItem:   'アイテム効果',
+      correctedSeries: 'シリーズ耐性値ボーナス',
     },
     elementIcons: {
       fire:    'mdi-fire',
@@ -186,15 +203,18 @@ export default {
       dragon:  'mdi-khanda',
     },
     correctedValues: {
-      skill: 0,
-      item:  0,
-      bonus: 0,
-      head:  0,
-      chest: 0,
-      arm:   0,
-      waist: 0,
-      leg:   0,
+      skill:  0,
+      item:   0,
+      bonus:  0,
+      series: 0,
     },
+    armorSeries: {
+      head:   null,
+      chest:  null,
+      arms:   null,
+      waist:  null,
+      legs:   null,
+    }
   }),
 
   created() {
@@ -210,8 +230,38 @@ export default {
         switch (action.type) {
           case 'setEquipment':
             if (action.payload.property === 'weapon') {
+              // When changing weapons
               this.correctedValues.bonus = 0
-              this.correctedValues.bonus += this.$store.getters.equipmentKindOf('weapon', 'defense_bonus')
+              this.correctedValues.bonus += this.$store.getters.equipmentKindOf('weapon', 'defense_bonus') || 0
+            } else
+            if (action.payload.property !== 'talisman') {
+              // When changing armors
+              this.armorSeries[action.payload.property] = this.$store.getters.equipmentKindOf(action.payload.property, 'series')
+              let countBySeries = ['head', 'chest', 'arms', 'waist', 'legs'].map(part => this.armorSeries[part]).reduce((acc, cur) => {
+                let key = cur == null ? 'none': cur
+                acc[key] = acc[key] ? acc[key] + 1: 1
+                return acc
+              }, { none: 0 })
+              let countSeries = 0
+              for (let [key, value] of Object.entries(countBySeries)) {
+                if (key !== 'none' && value >= 3) {
+                  countSeries = value
+                }
+              }
+              switch (countSeries) {
+                case 3:  this.correctedValues.series = 1;break
+                case 4:  this.correctedValues.series = 2;break
+                case 5:  this.correctedValues.series = 3;break
+                default: this.correctedValues.series = 0;break
+              }
+            }
+            break
+          case 'setAggSkills':
+            // When the aggregated skills are changed
+            if (Object.keys(action.payload.aggrigation).length > 0) {
+              this.correctedValues.skill = this.getCorrectedBySkills(action.payload.aggrigation, this.$props)
+            } else {
+              this.correctedValues.skill = 0
             }
             break
           case 'setPlayerData':
@@ -244,7 +294,31 @@ export default {
   computed: {
     fixedValue () {
       if (this.$props.baseValue != null) {
-        return parseInt(this.$props.baseValue, 10) + Object.values(this.correctedValues).reduce((acc, cur) => acc + cur)
+        let totalValue = parseInt(this.$props.baseValue, 10)
+        if (this.$props.noCorrected) {
+          return totalValue
+        }
+        switch (this.$props.name) {
+          case 'attack':
+            totalValue += this.correctedValues.skill + this.correctedValues.item
+            break
+          case 'defense':
+            totalValue += this.correctedValues.skill + this.correctedValues.item + this.correctedValues.bonus
+            break
+          case 'fire':
+          case 'water':
+          case 'thunder':
+          case 'ice':
+          case 'dragon':
+            totalValue += this.correctedValues.skill + this.correctedValues.series
+            break
+          case 'element1':
+          case 'element2':
+          case 'affinity':
+            totalValue += this.correctedValues.skill
+            break
+        }
+        return totalValue
       } else {
         return '-'
       }
@@ -267,6 +341,219 @@ export default {
         'nochange--text': value == 0,
         'increase--text': value > 0,
       }
+    },
+    getCorrectedBySkills: (allSkills, args) => {
+      let bv = args.baseValue,
+          cv = 0, lv = 0
+      switch (args.name) {
+        case 'attack':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '攻撃')) {
+            lv = allSkills['攻撃'] > 7 ? 7: allSkills['攻撃']
+            switch (lv) {
+              case 1: cv += 3; break
+              case 2: cv += 6; break
+              case 3: cv += 9; break
+              case 4: cv += Math.floor(bv * 0.05) + 7; break
+              case 5: cv += Math.floor(bv * 0.06) + 8; break
+              case 6: cv += Math.floor(bv * 0.08) + 9; break
+              case 7: cv += Math.floor(bv * 0.10) + 10; break
+            }
+          }
+          break
+        case 'element1':
+        case 'element2':
+          if (Object.prototype.hasOwnProperty.call(allSkills, `${args.elementName}属性攻撃強化`)) {
+            lv = allSkills[`${args.elementName}属性攻撃強化`] > 5 ? 5: allSkills[`${args.elementName}属性攻撃強化`]
+            switch (lv) {
+              case 1: cv += 2; break
+              case 2: cv += 3; break
+              case 3: cv += Math.floor(bv * 0.05) + 4; break
+              case 4: cv += Math.floor(bv * 0.10) + 4; break
+              case 5: cv += Math.floor(bv * 0.20) + 4; break
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, `${args.elementName}属性強化`)) {
+            lv = allSkills[`${args.elementName}属性強化`] > 3 ? 3: allSkills[`${args.elementName}属性強化`]
+            switch (lv) {
+              case 1: cv += Math.floor(bv * 0.05) + 1; break
+              case 2: cv += Math.floor(bv * 0.10) + 2; break
+              case 3: cv += Math.floor(bv * 0.20) + 5; break
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '鋼殻の恩恵')) {
+            if (args.elementName === '水' || args.elementName === '氷') {
+              lv = allSkills['鋼殻の恩恵'] > 4 ? 4: allSkills['鋼殻の恩恵']
+              switch (lv) {
+                case 1: cv += Math.floor(bv * 0.05); break
+                case 2: cv += Math.floor(bv * 0.10); break
+              }
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '炎鱗の恩恵')) {
+            if (args.elementName === '火' || args.elementName === '爆破') {
+              lv = allSkills['炎鱗の恩恵'] > 4 ? 4: allSkills['炎鱗の恩恵']
+              switch (lv) {
+                case 1: cv += Math.floor(bv * 0.05); break
+                case 2: cv += Math.floor(bv * 0.10); break
+              }
+            }
+          }
+          break
+        case 'affinity':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '見切り')) {
+            lv = allSkills['見切り'] > 7 ? 7: allSkills['見切り']
+            switch (lv) {
+              case 1: cv +=  5; break
+              case 2: cv += 10; break
+              case 3: cv += 15; break
+              case 4: cv += 20; break
+              case 5: cv += 25; break
+              case 6: cv += 30; break
+              case 7: cv += 40; break
+            }
+          }
+          break
+        case 'sharpness':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '匠')) {
+            lv = allSkills['匠'] > 5 ? 5: allSkills['匠']
+            switch (lv) {
+              case 1: cv += 10; break
+              case 2: cv += 20; break
+              case 3: cv += 30; break
+              case 4: cv += 40; break
+              case 5: cv += 50; break
+            }
+          }
+          break
+        case 'defense':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            switch (lv) {
+              case 1: cv += 5; break
+              case 2: cv += 10; break
+              case 3: cv += Math.floor(bv * 0.05) + 10; break
+              case 4: cv += Math.floor(bv * 0.05) + 20; break
+              case 5: cv += Math.floor(bv * 0.08) + 20; break
+              case 6: cv += Math.floor(bv * 0.08) + 35; break
+              case 7: cv += Math.floor(bv * 0.10) + 35; break
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '火耐性')) {
+            lv = allSkills['火耐性'] > 3 ? 3: allSkills['火耐性']
+            cv += lv == 3 ? 10: 0
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '水耐性')) {
+            lv = allSkills['水耐性'] > 3 ? 3: allSkills['水耐性']
+            cv += lv == 3 ? 10: 0
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '雷耐性')) {
+            lv = allSkills['雷耐性'] > 3 ? 3: allSkills['雷耐性']
+            cv += lv == 3 ? 10: 0
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '氷耐性')) {
+            lv = allSkills['氷耐性'] > 3 ? 3: allSkills['氷耐性']
+            cv += lv == 3 ? 10: 0
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '龍耐性')) {
+            lv = allSkills['龍耐性'] > 3 ? 3: allSkills['龍耐性']
+            cv += lv == 3 ? 10: 0
+          }
+          break
+        case 'fire':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            cv += (lv == 4 || lv == 5) ? 3 : ((lv == 6 || lv == 7) ? 5 : 0)
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '火耐性')) {
+            lv = allSkills['火耐性'] > 3 ? 3: allSkills['火耐性']
+            switch (lv) {
+              case 1: cv += 6; break
+              case 2: cv += 12; break
+              case 3: cv += 20; break
+            }
+          }
+          break
+        case 'water':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            cv += (lv == 4 || lv == 5) ? 3 : ((lv == 6 || lv == 7) ? 5 : 0)
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '水耐性')) {
+            lv = allSkills['水耐性'] > 3 ? 3: allSkills['水耐性']
+            switch (lv) {
+              case 1: cv += 6; break
+              case 2: cv += 12; break
+              case 3: cv += 20; break
+            }
+          }
+          break
+        case 'thunder':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            cv += (lv == 4 || lv == 5) ? 3 : ((lv == 6 || lv == 7) ? 5 : 0)
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '雷耐性')) {
+            lv = allSkills['雷耐性'] > 3 ? 3: allSkills['雷耐性']
+            switch (lv) {
+              case 1: cv += 6; break
+              case 2: cv += 12; break
+              case 3: cv += 20; break
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '雷紋の一致')) {
+            lv = allSkills['雷紋の一致'] > 5 ? 5: allSkills['雷紋の一致']
+            switch (lv) {
+              case 1: cv += 1; break
+              case 2: cv += 2; break
+              case 3: cv += 3; break
+              case 4: cv += 4; break
+            }
+          }
+          break
+        case 'ice':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            cv += (lv == 4 || lv == 5) ? 3 : ((lv == 6 || lv == 7) ? 5 : 0)
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '氷耐性')) {
+            lv = allSkills['氷耐性'] > 3 ? 3: allSkills['氷耐性']
+            switch (lv) {
+              case 1: cv += 6; break
+              case 2: cv += 12; break
+              case 3: cv += 20; break
+            }
+          }
+          break
+        case 'dragon':
+          if (Object.prototype.hasOwnProperty.call(allSkills, '防御')) {
+            lv = allSkills['防御'] > 7 ? 7: allSkills['防御']
+            cv += (lv == 4 || lv == 5) ? 3 : ((lv == 6 || lv == 7) ? 5 : 0)
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '龍耐性')) {
+            lv = allSkills['龍耐性'] > 3 ? 3: allSkills['龍耐性']
+            switch (lv) {
+              case 1: cv += 6; break
+              case 2: cv += 12; break
+              case 3: cv += 20; break
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '風紋の一致')) {
+            lv = allSkills['風紋の一致'] > 5 ? 5: allSkills['風紋の一致']
+            switch (lv) {
+              case 1: cv += 1; break
+              case 2: cv += 2; break
+              case 3: cv += 3; break
+              case 4: cv += 4; break
+            }
+          }
+          break
+      }
+      /*
+      if (cv > 0) {
+        console.log('Parameter.vue::When changing decorations in slots:', allSkills, args.name, bv, cv)
+      }
+      */
+      return cv
     },
   },
 

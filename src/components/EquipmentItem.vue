@@ -158,7 +158,7 @@ export default {
   }),
 
   watch: {
-    selectedLevel: function (newlv) {
+    selectedLevel: function (newlv/*, oldlv*/) {
       let part = ['head', 'chest', 'arms', 'waist', 'legs'][this.item.part]
       //console.log("EquipmentItem.vue::changed %s selectedLevel: %s -> %s", part, oldlv, newlv)
       //console.log('Current stored part level: %d', this.$store.getters.armorLevelKindOf(part))
@@ -177,7 +177,7 @@ export default {
         if ('setEquipment' === action.type && this.$props.type === action.payload.property) {
           this.oldItem = this.item
           this.item = state[action.payload.property].data
-          if (this.isArmor(this.$props.type)) {
+          if (this.isArmor(this.$props.type) && Object.keys(this.item).length > 0) {
             this.selectedLevel = state[action.payload.property].level || 1
           }
           //console.log('EquipmentItem.vue::After changing %s: ', this.$props.type, this.oldItem, this.item)
@@ -190,7 +190,7 @@ export default {
     equipmentType() {
       switch (this.$props.type) {
         case 'weapon':
-          return this.item && Object.prototype.hasOwnProperty.call(this.item, 'type')
+          return this.item && Object.prototype.hasOwnProperty.call(this.item, 'name') && this.item.name !== ''
             ? this.getEquipType('weapon', this.item.type)
             : this.labels.weapon
         case 'talisman':
@@ -236,32 +236,8 @@ export default {
         if (this.isArmor(this.$props.type)) {
           this.selectedLevel = this.$store.getters.armorLevelKindOf(this.item.part)
         }
-        //this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
-        /*
-        let tableName = ['head', 'chest', 'arms', 'waist', 'legs'].includes(this.$props.type) ? 'armors': `${this.$props.type}s`
-        console.log('init::_2', tableName)
-        this.retrieveData(tableName, () => {
-          let items = this.$store.state[tableName].filter(item => item.id == Number(this.$props.id))
-          console.log('init::_3', items)
-          if (items) {
-            this.$store.state[this.$props.type].data = items.shift()
-            this.item = this.$store.state[this.$props.type].data.concat()
-            this.hasSlot = (this.item.slot1 + this.item.slot2 + this.item.slot3) > 0
-          } else {
-            this.item = {
-              name: '-', rarity: 0, 
-            }
-          }
-          this.loading = false
-        })
-        */
-        //this.loading = false
-      //} else {
-        //this.item = null
-        //this.loading = false
       }
       this.loading = false
-      //console.log('init::_4', this.$props.type, this.$props.id, this.item)
     },
  },
 

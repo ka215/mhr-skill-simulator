@@ -194,6 +194,19 @@
       .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
     }
   }
+  /* talisman list */
+  &.talisman-info {
+    thead > tr > th:first-child,
+    tbody > tr > td:first-child,
+    tfoot > tr > th:first-child {
+      .theme--dark &  { border-right: thin dashed rgba(#ffffff, 0.06); }
+      .theme--light & { border-right: thin dashed rgba(#000000, 0.1); }
+    }
+  }
+  .br-1 {
+    .theme--dark &  { border-right: thin solid rgba(#ffffff, 0.06); }
+    .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
+  }
 }
 /* Talisman Component */
 .v-talisman {
@@ -211,4 +224,8 @@
 /* Others */
 .no-hover-effect:hover {
   background: none !important;
+}
+.border-dashed {
+  .theme--dark &  { border-style: dashed; border-color: rgba(#ffffff, 0.06); }
+  .theme--light & { border-style: dashed; border-color: rgba(#000000, 0.1); }
 }

@@ -13,6 +13,7 @@
         v-for="(item, i) in items"
         :key="i"
         :to="item.to"
+        :disabled="!item.enabled"
       >
         <v-list-item-icon>
           <v-icon
@@ -38,12 +39,13 @@ export default {
       subheader: '機能メニュー',
     },
     items: [
-      { to: '/',            icon: 'alpha-m-circle-outline', label: 'メイン', },
-      { to: '/weapons',     icon: 'alpha-w-circle-outline', label: '武器', },
-      { to: '/armors',      icon: 'alpha-a-circle-outline', label: '防具', },
-      { to: '/decorations', icon: 'alpha-d-circle-outline', label: '装飾品', },
-      { to: '/talismans',   icon: 'alpha-t-circle-outline', label: '護石', },
-      { to: '/skills',      icon: 'alpha-s-circle-outline', label: 'スキル', },
+      { to: '/',            icon: 'alpha-m-circle-outline', enabled: true,  label: 'メイン', },
+      { to: '/weapons',     icon: 'alpha-w-circle-outline', enabled: false, label: '武器', },
+      { to: '/armors',      icon: 'alpha-a-circle-outline', enabled: false, label: '防具', },
+      { to: '/decorations', icon: 'alpha-d-circle-outline', enabled: true,  label: '装飾品', },
+      { to: '/talismans',   icon: 'alpha-t-circle-outline', enabled: true,  label: '護石', },
+      { to: '/skills',      icon: 'alpha-s-circle-outline', enabled: true,  label: 'スキル', },
+      { to: '/manage',      icon: 'alpha-s-circle-outline', enabled: true,  label: '管理', },
     ],
   }),
 

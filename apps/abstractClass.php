@@ -223,6 +223,25 @@ abstract class abstractClass {
      */
     abstract protected function catch_request();
 
+    /**
+     * Logger
+     *
+     * @access protected
+     */
+    protected function logger( mixed $content ): void {
+        $log_content = match( gettype( $content ) ) {
+            'array'   => '(Array) ' . json_encode( $content ),
+            'object'  => '(Object) ' . json_encode( $content ),
+            'boolean' => $content ? 'true': 'false',
+            'integer' => (int)$content,
+            'double'  => (float)$content,
+            'NULL'    => null,
+            default   => (string)$content,
+        };
+        $dest = dirname( __FILE__, 2 ) . '/debug.log';
+        error_log( $log_content . PHP_EOL, 3, $dest );
+    }
+
 }
 
 endif;

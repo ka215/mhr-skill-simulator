@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="d-flex justify-center"
-  >
-    <SkillList />
-  </div>
+  <SkillList />
 </template>
 
 <script>
@@ -14,14 +10,6 @@ export default {
 
   components: {
     SkillList,
-  },
-
-  data: () => ({
-    //
-  }),
-
-  created() {
-    //console.log(this.$route)
   },
 }
 </script>

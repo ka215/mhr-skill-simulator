@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import Decorations from '../views/Decorations.vue'
+import Talismans from '../views/Talismans.vue'
 import Skills from '../views/Skills.vue'
+import Manage from '../views/Manage.vue'
 
 Vue.use(VueRouter)
 
@@ -11,10 +14,37 @@ const routes = [
     name: 'Home',
     component: Home,
   },
+  /*
+  {
+    path: '/weapons',
+    name: 'Weapons',
+    component: Weapons,
+  },
+  {
+    path: '/armors',
+    name: 'Armors',
+    component: Armors,
+  },
+  */
+  {
+    path: '/decorations',
+    name: 'Decorations',
+    component: Decorations,
+  },
+  {
+    path: '/talismans',
+    name: 'Talismans',
+    component: Talismans,
+  },
   {
     path: '/skills',
     name: 'Skills',
     component: Skills,
+  },
+  {
+    path: '/manage',
+    name: 'Manage',
+    component: Manage,
   },
 ]
 

@@ -27,19 +27,38 @@
               <div class="col-1 ma-0 px-1 py-0">
                 <Talisman :slotType="item[`slot${n}`]" :attached="values[`slot${n}`]" />
               </div>
-              <div class="col-5 ma-0 px-1 py-0">
+              <div class="col-6 ma-0 px-1 py-0">
                 <v-autocomplete
-                  v-model="values['slot' + n]"
+                  v-model="values[`slot${n}`]"
                   :items="setDecorations(item[`slot${n}`])"
                   flat
                   clearable
                   background-color="transparent"
                   color="primary"
-                ></v-autocomplete>
+                  item-text="name"
+                  item-value="id"
+                >
+                  <template v-slot:item="data">
+                    <v-list-item-icon>
+                      <v-icon
+                        dense
+                        :class="`rare-${data.item.rarity}--text`"
+                      >mdi-numeric-{{ data.item.slot }}-circle-outline</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title
+                        :class="`rare-${data.item.rarity}--text`"
+                      >{{ data.item.name }}</v-list-item-title>
+                      <v-list-item-subtitle
+                        class="text-caption"
+                      >({{ Object.keys(data.item.skills).join() }})</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </v-autocomplete>
               </div>
-              <div class="col-6 ma-0 px-4 py-0">
+              <div class="col-5 ma-0 px-4 py-0">
                 <template v-if="values[`slot${n}`]">
-                  {{ labels.skillName }}
+                  {{ selectedSkillName(n) }}
                 </template>
                 <template v-else>
                   <v-icon class="muted--text">mdi-minus</v-icon>
@@ -67,7 +86,7 @@
 
 <script>
 import Talisman from '@/components/Talisman'
-import mockData from '@/../public/mock_data.json'
+//import mockData from '@/../public/mock_data.json'
 
 export default {
   name: 'SlotEditor',
@@ -91,7 +110,7 @@ export default {
       skillName: 'スキル名を表示',
     },
     item: null,
-    decorations: {},
+    decorations: [],
     values: {
       slot1: null,
       slot2: null,
@@ -108,13 +127,16 @@ export default {
   },
 
   created() {
-    this.decorations = mockData.decorations
     this.$root.$on('open:SlotEditor', (value) => {
+      this.decorations = this.$store.state.decorations.concat()
+      this.decorations.sort((a, b) => {
+        return a.ruby_name.localeCompare(b.ruby_name, 'ja')
+      })
       this.item = value
       this.labels.name = this.item.name
       this.loadSlotStatus()
+      //console.log(`SlotEditor.vue::created:on.open:SlotEditor`, this.item, this.decorations.length)
       this.dialog = true
-      console.log(`SlotEditor.vue::created:on.open:SlotEditor`, this.item)
     })
   },
 
@@ -135,20 +157,21 @@ export default {
 
   methods: {
     setDecorations: function(slot) {
-      console.log(slot)
-      switch (slot) {
-        case 1: return this.decorations.slot1
-        case 2: return this.decorations.slot2.concat(this.decorations.slot1)
-        case 3: return this.decorations.slot3.concat(this.decorations.slot2, this.decorations.slot1)
-      }
+      return this.decorations.filter((item) => { return item.slot <= slot })
+    },
+    selectedSkillName: function(slot) {
+      let skillId = this.values[`slot${slot}`],
+          oneItem = this.decorations.find(item => item.id == skillId)
+      return Object.keys(oneItem.skills).join()
     },
     loadSlotStatus: function() {
-      console.log('SlotEditor.vue::loadSlotStatus', this.item)
-      // Loading...
+      let currentSlots = this.$store.getters.currentSlotsKindOf(this.getEquipmentKind(this.item))
+      // console.log('SlotEditor.vue::loadSlotStatus', this.item, currentSlots)
+      this.values = currentSlots
     },
     commitEdit: function() {
-      console.log('SlotEditor.vue::commitEdit:save', this.values)
-      // Saving...
+      // console.log('SlotEditor.vue::commitEdit:save', this.values)
+      this.$store.dispatch('setEquipment', {property: this.getEquipmentKind(this.item), slots: this.values})
       this.dialog = false
     },
   },

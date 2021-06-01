@@ -77,6 +77,7 @@ export default {
       close: '閉じる',
     },
     currentLevel: null,
+    maxLevel: null,
     skillData: null,
   }),
 
@@ -93,8 +94,9 @@ export default {
   created() {
     this.$root.$on('open:SkillDetail', (...args) => {
       const [skill, level] = args
-      this.currentLevel = level
       this.skillData = this.$store.state.skills.find(elm => elm.name === skill)
+      this.maxLevel = Number(this.skillData.max_lv)
+      this.currentLevel = level > this.maxLevel ? this.maxLevel: level
       this.labels.title = this.skillData.name
       this.labels.description = this.skillData.description
       //console.log(`SkillDetail.vue::created:on.open:SkillDetail`, this.skillData, this.currentLevel)

@@ -1,5 +1,6 @@
-process.env.VUE_APP_VERSION = require('./package.json').version
-process.env.VUE_APP_SUBDIR  = 'mhr/'
+process.env.VUE_APP_VERSION  = require('./package.json').version
+process.env.VUE_APP_SUBDIR   = 'mhr/'
+process.env.VUE_APP_PROD_URL = '//ka2.org/mhr/'// '//dev2.ka2.org/mhr/' for xampp
 
 module.exports = {
   publicPath: process.env.NODE_ENV === 'production'
@@ -16,6 +17,10 @@ module.exports = {
     }
   },
   productionSourceMap: false,
+  devServer: {
+    host: 'dev2.ka2.org',
+    port: null,
+  },
   transpileDependencies: [
     'vuetify'
   ],

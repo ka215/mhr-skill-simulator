@@ -62,6 +62,12 @@
                 :footer-props="{'items-per-page-text': labels.rowPerPage, 'items-per-page-all-text': labels.perPageAll, 'page-text': labels.pageText}"
                 @click:row="selectedRow"
               >
+                <template v-slot:item.name="{ item }">
+                  <span :class="`rare-${item.rarity}--text`">{{ item.name }}</span>
+                </template>
+                <template v-slot:item.rarity="{ item }">
+                  <span :class="`rare-${item.rarity}--text`">{{ item.rarity }}</span>
+                </template>
                 <template v-slot:item.affinity="{ item }">
                   {{ item.affinity }}<v-icon x-small class="text--secondary">mdi-percent-outline</v-icon>
                 </template>
@@ -105,6 +111,12 @@
               :search="search"
               @click:row="selectedRow"
             >
+              <template v-slot:item.name="{ item }">
+                <span :class="`rare-${item.rarity}--text`">{{ item.name }}</span>
+              </template>
+              <template v-slot:item.rarity="{ item }">
+                <span :class="`rare-${item.rarity}--text`">{{ item.rarity }}</span>
+              </template>
               <template v-slot:item.slots="{ item }">
                 <div style="margin-top: 3px; marign-bottom: 0;">
                   <Talisman :slotType="item.slot1" size="24" /><Talisman :slotType="item.slot2" size="24" /><Talisman :slotType="item.slot3" size="24" />
@@ -147,7 +159,7 @@
             <v-data-table
               v-model="selected"
               :headers="headers.talisman"
-              :items="talismans"
+              :items="talismans !== null ? talismans: []"
               item-key="id"
               single-select
               show-select
@@ -158,6 +170,12 @@
               :search="search"
               @click:row="selectedRow"
             >
+              <template v-slot:item.name="{ item }">
+                <span :class="`rare-${item.rarity}--text`">{{ item.name }}</span>
+              </template>
+              <template v-slot:item.rarity="{ item }">
+                <span :class="`rare-${item.rarity}--text`">{{ item.rarity }}</span>
+              </template>
               <template v-slot:item.slots="{ item }">
                 <div style="margin-top: 3px; marign-bottom: 0;">
                   <Talisman :slotType="item.slot1" size="24" /><Talisman :slotType="item.slot2" size="24" /><Talisman :slotType="item.slot3" size="24" />
@@ -170,16 +188,24 @@
                   <div
                     v-for="(lv, skill) in item.skills"
                     :key="skill + lv"
-                    class="mr-2"
+                    class="d-flex justify-start align-center mr-2"
                   >
                     <span class="text-caption">{{ skill }}</span>
                     <v-icon small class="font-weight-thin text--secondary ml-1">mdi-numeric-{{ lv }}-circle-outline</v-icon>
                   </div>
                 </div>
               </template>
-              <!-- /* template v-slot:item.worth="{ item }">
-                {{ starRating(item) }}
-              </template */ -->
+              <template v-slot:item.worth="{ item }">
+                <div
+                  class="d-flex justify-space-between align-center ma-0"
+                >
+                  <template v-if="!/^(xs|sm)$/.test($vuetify.breakpoint.name)">
+                    <div class="text-center" style="width: 60px;">{{ item.worth.toString() }}</div>
+                    <v-divider vertical class="border-dashed" />
+                  </template>
+                  <StarRating :evaluation="Math.ceil(item.worth / 20)" />
+                </div>
+              </template>
             </v-data-table>
           </v-card>
         </template>
@@ -190,6 +216,11 @@
             text
             @click="dialog = false"
           >{{ labels.close }}</v-btn>
+          <v-btn
+            text
+            :disabled="this.labels.name === ''"
+            @click="removeItem"
+          >{{ labels.remove }}</v-btn>
           <v-btn
             text
             :disabled="selected.length == 0"
@@ -203,16 +234,14 @@
 
 <script>
 import Talisman from '@/components/Talisman'
+import StarRating from '@/components/StarRating'
 
 export default {
   name: 'EquipChanger',
 
   components: {
     Talisman,
-  },
-
-  props: {
-    //
+    StarRating,
   },
 
   data: () => ({
@@ -227,11 +256,12 @@ export default {
       noArmorResults: '該当する防具がありません。',
       noArmorData: '防具データがありません。',
       noTalismanResults: '該当する護石がありません。',
-      noTalismanData: "護石データがありません。\n護石管理から登録してください。",
+      noTalismanData: "護石データがありません。護石を登録してください。",
       rowPerPage: '表示数:',
       perPageAll: 'すべて',
       pageText: '{0}-{1}件/{2}件',
       close: '閉じる',
+      remove: '装備を外す',
       commit: '決定',
     },
     item: null,// current equipment item
@@ -245,36 +275,36 @@ export default {
     tab: null,
     headers: {
       weapon: [
-        { text: '武器名', align: 'start', value: 'name' },
-        { text: '派生', value: 'tree' },
-        { text: 'レア度', align: 'center', value: 'rarity' },
-        { text: '攻撃力', align: 'center', value: 'attack' },
-        { text: '会心率', align: 'center', value: 'affinity' },
-        { text: '防御ボーナス', align: 'center', value: 'defense_bonus' },
-        { text: '属性', align: 'center', value: 'elements' },
-        { text: 'スロット', value: 'slots', width: 105 },
+        { value: 'name',          align: 'start',  text: '武器名', },
+        { value: 'tree',          align: 'start',  text: '派生',  },
+        { value: 'rarity',        align: 'center', text: 'レア度', },
+        { value: 'attack',        align: 'center', text: '攻撃力' },
+        { value: 'affinity',      align: 'center', text: '会心率' },
+        { value: 'defense_bonus', align: 'center', text: '防御ボーナス' },
+        { value: 'elements',      align: 'center', text: '属性' },
+        { value: 'slots',         align: 'center', text: 'スロット', width: 105 },
       ],
       armor: [
-        { text: '防具名', align: 'start', value: 'name', width: 150, filterable: false },
-        //{ text: 'シリーズ名', value: 'series', filterable: false },
-        { text: 'レア度', align: 'center', value: 'rarity', filterable: false },
-        { text: '防御力', align: 'center', value: 'defense', filterable: false },
-        { text: '火耐性', align: 'center', value: 'fire_resistance', filterable: false },
-        { text: '水耐性', align: 'center', value: 'water_resistance', filterable: false },
-        { text: '雷耐性', align: 'center', value: 'thunder_resistance', filterable: false },
-        { text: '氷耐性', align: 'center', value: 'ice_resistance', filterable: false },
-        { text: '龍耐性', align: 'center', value: 'dragon_resistance', filterable: false },
-        { text: 'スロット', align: 'center', value: 'slots', width: 105, filterable: false },
-        { text: 'スキル', value: 'skills_text', sortable: false }
+        { value: 'name',               align: 'start',  filterable: false, text: '防具名', width: 150, },/*
+        { value: 'series', filterable: false, text: 'シリーズ名', }, */
+        { value: 'rarity',             align: 'center', filterable: false, text: 'レア度', },
+        { value: 'defense',            align: 'center', filterable: false, text: '防御力', },
+        { value: 'fire_resistance',    align: 'center', filterable: false, text: '火耐性', },
+        { value: 'water_resistance',   align: 'center', filterable: false, text: '水耐性', },
+        { value: 'thunder_resistance', align: 'center', filterable: false, text: '雷耐性', },
+        { value: 'ice_resistance',     align: 'center', filterable: false, text: '氷耐性', },
+        { value: 'dragon_resistance',  align: 'center', filterable: false, text: '龍耐性', },
+        { value: 'slots',              align: 'center', filterable: false, text: 'スロット', width: 105, },
+        { value: 'skills_text',                         sortable:   false, text: 'スキル', }
       ],
       talisman: [
-        { text: '護石名', align: 'start', value: 'name', width: 120, filterable: false },
-        { text: 'レア度', align: 'center', value: 'rarity', width: 90, filterable: false },
-        { text: 'スロット', align: 'center', value: 'slots', width: 105, filterable: false },
-        { text: 'スキル', value: 'skills_text', width: 'calc(100% - 630px)', sortable: false },
-        { text: '評価', align: 'center', value: 'worth', width: 105, filterable: false },
-        { text: '排出タイプ', align: 'center', value: 'emission_type', width: 105, filterable: false },
-        { text: '排出数', align: 'center', value: 'emissions', width: 105, filterable: false },
+        { value: 'name',          align: 'start',  filterable: false, text: '護石名',    width: 105, },
+        { value: 'rarity',        align: 'center', filterable: false, text: 'レア度',    width: 85, },
+        { value: 'slots',         align: 'center', filterable: false, text: 'スロット',  width: 105, },
+        { value: 'skills_text',   align: 'start',  sortable:   false, text: 'スキル',    width: 'calc(100% - 660px)', },
+        { value: 'worth',         align: 'center', filterable: false, text: '評価',     width: 280, },/*
+        { value: 'emission_type', align: 'center', filterable: false, text: '排出タイプ', width: 105, },
+        { value: 'emissions',     align: 'center', filterable: false, text: '排出数',    width: 105, },*/
       ],
     },
     search: '',
@@ -302,10 +332,6 @@ export default {
   },
 
   created() {
-    //
-  },
-
-  mounted() {
     this.$root.$on('open:EquipChanger', (value) => {
       this.item = value
       this.kind = Object.prototype.hasOwnProperty.call(this.item, 'type') ? 'weapon': (Object.prototype.hasOwnProperty.call(this.item, 'part') ? 'armor': 'talisman')
@@ -341,13 +367,14 @@ export default {
           this.armorPart = this.item.part
           this.retrieveData('armors', () => {
             this.armors = this.$store.state.armors.concat()
-            //console.log(this.armors)
+            let has_skills = []
             this.armors.forEach((item, i, self) => {
               item.name  = item[`name_${this.$store.getters.playerDataOf('gender')}`]
               item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
               let tmp_array = []
               for (let [key, value] of Object.entries(item.skills)) {
                 tmp_array.push(`${key}(${value})`)
+                has_skills.push(key)
               }
               item.skills_text = tmp_array.join(', ')
               self[i] = item
@@ -355,6 +382,7 @@ export default {
             this.armors.sort((a, b) => {
               return a[`ruby_name_${this.$store.getters.playerDataOf('gender')}`].localeCompare(b[`ruby_name_${this.$store.getters.playerDataOf('gender')}`], 'ja')
             })
+            this.ac_skills = has_skills
             this.dialog = this.armors.length > 0
           })
           break
@@ -363,12 +391,13 @@ export default {
           this.labels.name = this.item.name
           this.retrieveData('talismans', () => {
             this.talismans = this.$store.state.talismans.concat()
-            //console.log(this.talismans)
+            let has_skills = []
             this.talismans.forEach((item, i, self) => {
               item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
               let tmp_array = []
               for (let [key, value] of Object.entries(item.skills)) {
                 tmp_array.push(`${key}(${value})`)
+                has_skills.push(key)
               }
               item.skills_text = tmp_array.join(', ')
               self[i] = item
@@ -379,6 +408,7 @@ export default {
             this.talismans.sort((a, b) => {
               return (a.worth < b.worth ? 1: -1)
             })
+            this.ac_skills = has_skills
             this.dialog = true// this.talismans.length > 0
           })
           break
@@ -398,6 +428,17 @@ export default {
   },
 
   methods: {
+    removeItem: function() {
+      let payload = {data: {}, slots: {}}
+      if (this.kind === 'armor') {
+        payload.property = ['head', 'chest', 'arms', 'waist', 'legs'][this.armorPart]
+        payload.level = null
+      } else {
+        payload.property = this.kind
+      }
+      this.$store.dispatch('setEquipment', payload)
+      this.dialog = false
+    },
     commitEdit: function() {
       if (this.selected.length == 0) {
         this.dialog = false
@@ -407,10 +448,10 @@ export default {
       if (newItems.length > 0) {
         if ('armor' === this.kind) {
           let part = ['head', 'chest', 'arms', 'waist', 'legs'][newItems[0].part]
-          this.$store.dispatch('setEquipment', {property: part, data: newItems[0], level: 1, slots: []})
+          this.$store.dispatch('setEquipment', {property: part, data: newItems[0], level: 1, slots: {}})
           //console.log('EquipChanger.vue::commitEdit:saved', part, this.$store.state[part])
         } else {
-          this.$store.dispatch('setEquipment', {property: this.kind, data: newItems[0], slots: []})
+          this.$store.dispatch('setEquipment', {property: this.kind, data: newItems[0], slots: {}})
           //console.log('EquipChanger.vue::commitEdit:saved', this.kind, this.$store.state[this.kind])
         }
       } else {

@@ -1,9 +1,28 @@
 <template>
-  <v-container>
-    <h2>{{ labels.title }}</h2>
+  <v-container
+    fluid
+  >
+    <div class="d-flex justify-space-between">
+      <h2 class="text-h6 amber--text">{{ labels.title }}</h2>
+      <template v-if="!loading">
+        <v-spacer />
+        <v-autocomplete
+          v-model="search"
+          :items="skills.map(elm => elm.name)"
+          :label="labels.search"
+          clearable
+          dense
+          hide-details
+          :no-data-text="labels.noSkillData"
+          :style="`max-width: ${$vuetify.breakpoint.name === 'xs' ? '60%': ($vuetify.breakpoint.name === 'sm' ? '40%': '20%')};`"
+          @click:clear="search = null"
+        ></v-autocomplete>
+      </template>
+    </div>
     <v-divider />
     <v-row
       no-gutters
+      class="mt-2"
     >
       <template v-if="loading">
         <v-col
@@ -22,7 +41,7 @@
       </template>
       <template v-else>
         <v-col
-          v-for="skill in skills"
+          v-for="skill in skills.filter(item => search ? item.name === this.search: true)"
           :key="skill.id"
           cols="12"
           md="6"
@@ -128,8 +147,11 @@ export default {
   data: () => ({
     labels: {
       title: 'スキル一覧',
+      search: 'スキル検索',
+      noSkillData: '該当するスキルはありません。',
     },
     skills: null,
+    search: null,
     loading: true,
   }),
 
