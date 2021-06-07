@@ -1,5 +1,7 @@
 # Monster Hunter Rise Skill Simulator
 
+![MHRSS Image](https://ka2.org/assets/2021/06/mhrss_pv_main_1.png)
+
 ## Project Progress Columns
 
 1. [Chapter 1](https://ka2.org/lets-create-a-skill-simulator-for-monster-hunter-rise)
@@ -13,11 +15,16 @@
 1. [Chapter 9](https://ka2.org/mhrise-skill-simulator-creation-chapter-9)
 1. [Chapter 10](https://ka2.org/mhrise-skill-simulator-creation-chapter-10)
 1. [Chapter 11](https://ka2.org/mhrise-skill-simulator-creation-chapter-11)
-1. Chapter 12
+1. Chapter 12 - Coming Soon!
 
 ## Demo at this time
 
+The current latest version: v0.1.6
+
 <https://ka2.org/mhr/v0.1.6/>
+
+Note: the content of the master data in the demo version is subject to change at any time.
+Note: the data exported by the demo version may not be able to be continued in future applications.
 
 ## Contributions
 
