@@ -17,7 +17,7 @@
 
 ## Demo at this time
 
-<iframe src="https://ka2.org/mhr/v0.1.6/" width="100%" height="860" frameBorder="0" marginHeight="0" marginWidth="0"></iframe>
+<https://ka2.org/mhr/v0.1.6/>
 
 ## Contributions
 
