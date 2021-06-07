@@ -195,7 +195,8 @@
     }
   }
   /* talisman list */
-  &.talisman-info {
+  &.talisman-info,
+  &.decoration-list {
     thead > tr > th:first-child,
     tbody > tr > td:first-child,
     tfoot > tr > th:first-child {
@@ -228,4 +229,24 @@
 .border-dashed {
   .theme--dark &  { border-style: dashed; border-color: rgba(#ffffff, 0.06); }
   .theme--light & { border-style: dashed; border-color: rgba(#000000, 0.1); }
+}
+[data-ruby] {
+  position: relative;
+
+  &::before {
+    content: attr(data-ruby);
+    position: absolute;
+    display: inline-block;
+    top: -2.75em;
+    left: 0;
+    right: 0;
+    width: max-content;
+    min-width: 100%;
+    font-size: 0.5em;
+    text-align: center;
+    letter-spacing: 1px;
+
+    .theme--dark &  { color: rgba(#ffffff, 0.60); }
+    .theme--light & { color: rgba(#000000, 0.85); }
+  }
 }

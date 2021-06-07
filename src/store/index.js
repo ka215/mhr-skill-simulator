@@ -76,7 +76,9 @@ const getters = {
   // (: 現在装備中のアイテムがあるかどうか
   equipmentExists: (state) => (kind=null) => {
     let isExists = false,
-        parts = kind == null ? ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman']: [kind]
+        parts = kind == null
+          ? ['weapon', 'head', 'chest', 'arms', 'waist', 'legs', 'talisman']
+          : (/^armors?$/.test(kind) ? ['head', 'chest', 'arms', 'waist', 'legs']: [kind])
     //console.log('equipmentExists:', parts)
     parts.forEach(part => {
       //console.log(state[part])
@@ -114,7 +116,9 @@ const getters = {
     let skills = []
     for (let [, decoId] of Object.entries(state[kind].slots)) {
       let decoration = state.decorations.find(item => item.id === decoId)
-      skills = skills.concat(Object.keys(decoration.skills))
+      if (decoration) {
+        skills = skills.concat(Object.keys(decoration.skills))
+      }
     }
     return skills
   },
@@ -132,7 +136,6 @@ const mutations = {
   },
   // Usage: $store.commit('addItem', {property: 'talismans', data: newTalisman})
   addItem: (state, payload) => {
-    //console.log('$store.commit::addItem:', payload)
     state[payload.property].push(payload.data)
   },
   // Usage: $store.commit('updateEquipItem', {property: 'head', data: {...}, slots: []})
@@ -178,6 +181,11 @@ const mutations = {
   resetMasterData: (state, payload) => {
     Object.assign(state[payload.property], getInitialState()[payload.property])
   },
+  // Usage: $store.commit('removeItemById', {property: 'talismans', id: n})
+  removeItemById: (state, payload) => {
+    let targetIndex = state[payload.property].findIndex(item => item.id == payload.id)
+    state[payload.property].splice(targetIndex, 1)
+  },
 }
 
 const actions = {
@@ -207,6 +215,9 @@ const actions = {
   },
   resetMasterData: ({ commit }, payload) => {
     commit('resetMasterData', payload)
+  },
+  removeItemById: ({ commit }, payload) => {
+    commit('removeItemById', payload)
   },
 }
 

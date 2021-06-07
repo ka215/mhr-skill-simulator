@@ -40,42 +40,36 @@
         </v-col>
       </template>
       <template v-else>
-        <v-simple-table
-          class="transparent col-12 ma-0 pa-0"
+        <v-data-table
+          :headers="headers"
+          :items="decorations"
+          :items-per-page="-1"
+          :search="search"
+          hide-default-footer
+          class="decoration-list elevation-0"
         >
-          <tbody>
-            <tr
-              v-for="decoration in decorations.filter(item => search ? item.name === this.search: true)"
-              :key="decoration.id"
-            >
-              <th
-                :class="`text-subtitle-1 rare-${decoration.rarity}--text`"
-                style="width: 11em;"
-              >{{ decoration.name }}</th>
-              <td
-                :class="`text-center rare-${decoration.rarity}--text pa-3`"
-                style="width: 4em;"
-              >{{ decoration.rarity }}</td>
-              <td
-                class="text-center pa-3"
-                style="width: 4em;"
-              >{{ decoration.slot }}</td>
-              <td
-                class="text-left pa-3"
-                style="width: 13em;"
-              >{{ Object.keys(decoration.skills).join() }} <span class="text-caption text--secondary">Lv {{ Object.values(decoration.skills).join() }}</span></td>
-              <td
-                class="text-left pa-3"
-                style="width: auto;"
-                v-html="materialList(decoration.forging_materials || null)"
-              ></td>
-              <td
-                class="text-center pa-3"
-                style="width: 10em;"
-              >{{ decoration.forge_funds }}</td>
-            </tr>
-          </tbody>
-        </v-simple-table>
+          <template v-slot:item.name="{ item }">
+            <span
+              :class="`text-subtitle-1 rare-${item.rarity}--text`"
+            >{{ item.name }}</span>
+          </template>
+          <template v-slot:item.rarity="{ item }">
+            <span
+              :class="`text-subtitle-1 rare-${item.rarity}--text`"
+            >{{ item.rarity }}</span>
+          </template>
+          <template v-slot:item.skills="{ item }">
+            {{ Object.keys(item.skills).join() }}
+            <span
+              class="text-caption text--secondary"
+            >Lv {{ Object.values(item.skills).join() }}</span>
+          </template>
+          <template v-slot:item.forging_materials="{ item }">
+            <span
+              v-html="materialList(item.forging_materials || null)"
+            ></span>
+          </template>
+        </v-data-table>
       </template>
     </v-card>
   </v-container>
@@ -91,6 +85,14 @@ export default {
       search: '装飾品検索',
       noData: '該当する装飾品はありません。',
     },
+    headers: [
+      { value: 'name',              align: 'start',  sortable: false, width: 105, text: '装飾品名' },
+      { value: 'rarity',            align: 'center', sortable: true,  width: 85,  text: 'レア度'   },
+      { value: 'slot',              align: 'center', sortable: true,  width: 95,  text: 'スロット' },
+      { value: 'skills',            align: 'start',  sortable: false, width: 180, text: '発動スキル' },
+      { value: 'forging_materials', align: 'start',  sortable: false, width: "auto", text: '生産素材' },
+      { value: 'forge_funds',       align: 'center', sortable: true,  width: 105, text: '生産費用' },
+    ],
     decorations: null,
     skills: null,
     search: null,
@@ -103,14 +105,9 @@ export default {
       this.decorations.sort((a, b) => {
         return a.ruby_name.localeCompare(b.ruby_name, 'ja')
       })
-      this.loading = false
     }).then(() => {
-      //console.log(this.decorations)
+      this.loading = false
     })
-  },
-
-  computed: {
-    //
   },
 
   methods: {

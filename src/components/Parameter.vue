@@ -55,13 +55,12 @@
         </v-list-item-title>
       </template>
       <div
+        _comment="Total Fixed Value"
         class="col-2 pa-0 text-right"
       >
-        <template v-if="!/^element(1|2)$/.test($props.name) || $props.baseValue != 0">
-          {{ fixedValue }}
-          <template v-if="$props.name === 'affinity'">
-            <v-icon x-small class="text--secondary">mdi-percent-outline</v-icon>
-          </template>
+        {{ fixedValue() }}
+        <template v-if="$props.name === 'affinity'">
+          <v-icon x-small class="text--secondary">mdi-percent-outline</v-icon>
         </template>
       </div>
     </v-list-item>
@@ -73,12 +72,22 @@
         style="min-height: 1.5em;"
         dense
       >
-        <v-list-item-title
-          :class="correctedLabelClass(correctedValues.skill)"
-        >{{ labels.correctedSkill }}</v-list-item-title>
-        <v-list-item-title
-          :class="correctedValueClass(correctedValues.skill)"
-        >{{ correctedValues.skill | dispCorrect }}</v-list-item-title>
+        <template v-if="stormsoulMagnification === 1">
+          <v-list-item-title
+            :class="correctedLabelClass(correctedValues.skill)"
+          >{{ labels.correctedSkill }}</v-list-item-title>
+          <v-list-item-title
+            :class="correctedValueClass(correctedValues.skill)"
+          >{{ correctedValues.skill | dispCorrect }}</v-list-item-title>
+        </template>
+        <template v-else>
+          <v-list-item-title
+            :class="correctedLabelClass(correctedValues.skill + correctedValues.stormsoul)"
+          >{{ labels.correctedSkill }}</v-list-item-title>
+          <v-list-item-title
+            :class="correctedValueClass(correctedValues.skill + correctedValues.stormsoul)"
+          >{{ (correctedValues.skill + correctedValues.stormsoul) | dispCorrect }}</v-list-item-title>
+        </template>
       </v-list-item>
     </template>
     <template
@@ -207,6 +216,7 @@ export default {
       item:   0,
       bonus:  0,
       series: 0,
+      stormsoul: 0,
     },
     armorSeries: {
       head:   null,
@@ -214,17 +224,27 @@ export default {
       arms:   null,
       waist:  null,
       legs:   null,
-    }
+    },
+    stormsoulMagnification: 1,
   }),
 
   created() {
+    //console.log('Parameter.vue::created:', this.$store.getters.equipmentExists('weapon'), this.$store.getters.equipmentExists('armors'))
     if (this.$store.getters.equipmentExists('weapon')) {
       this.correctedValues.bonus = 0
       this.correctedValues.bonus += this.$store.getters.equipmentKindOf('weapon', 'defense_bonus')
     }
-  },
-
-  mounted() {
+    if (this.$store.getters.equipmentExists('armors')) {
+      let armorKinds = ['head', 'chest', 'arms', 'waist', 'legs']
+      armorKinds.forEach(kind => {
+        let seriesName = this.$store.getters.equipmentKindOf(kind, 'series')
+        if (seriesName) {
+          this.armorSeries[kind] = seriesName
+        }
+      })
+      this.correctedValues.series = 0
+      this.correctedValues.series += this.getCorrectedBySeries()
+    }
     this.$store.subscribeAction({
       after: (action) => {
         switch (action.type) {
@@ -237,27 +257,14 @@ export default {
             if (action.payload.property !== 'talisman') {
               // When changing armors
               this.armorSeries[action.payload.property] = this.$store.getters.equipmentKindOf(action.payload.property, 'series')
-              let countBySeries = ['head', 'chest', 'arms', 'waist', 'legs'].map(part => this.armorSeries[part]).reduce((acc, cur) => {
-                let key = cur == null ? 'none': cur
-                acc[key] = acc[key] ? acc[key] + 1: 1
-                return acc
-              }, { none: 0 })
-              let countSeries = 0
-              for (let [key, value] of Object.entries(countBySeries)) {
-                if (key !== 'none' && value >= 3) {
-                  countSeries = value
-                }
-              }
-              switch (countSeries) {
-                case 3:  this.correctedValues.series = 1;break
-                case 4:  this.correctedValues.series = 2;break
-                case 5:  this.correctedValues.series = 3;break
-                default: this.correctedValues.series = 0;break
-              }
+              this.correctedValues.series = 0
+              this.correctedValues.series += this.getCorrectedBySeries()
             }
             break
           case 'setAggSkills':
             // When the aggregated skills are changed
+            this.correctedValues.stormsoul = 0
+            this.stormsoulMagnification = 1
             if (Object.keys(action.payload.aggrigation).length > 0) {
               this.correctedValues.skill = this.getCorrectedBySkills(action.payload.aggrigation, this.$props)
             } else {
@@ -279,6 +286,10 @@ export default {
     })
   },
 
+  mounted() {
+    //console.log('Parameter.vue::mouted:', this.$store.getters.equipmentExists('weapon'), this.$store.getters.equipmentExists('armors'))
+  },
+
   filters: {
     dispCorrect (value) {
       if (value > 0) {
@@ -289,40 +300,6 @@ export default {
         return `±${value}`
       }
     }
-  },
-
-  computed: {
-    fixedValue () {
-      if (this.$props.baseValue != null) {
-        let totalValue = parseInt(this.$props.baseValue, 10)
-        if (this.$props.noCorrected) {
-          return totalValue
-        }
-        switch (this.$props.name) {
-          case 'attack':
-            totalValue += this.correctedValues.skill + this.correctedValues.item
-            break
-          case 'defense':
-            totalValue += this.correctedValues.skill + this.correctedValues.item + this.correctedValues.bonus
-            break
-          case 'fire':
-          case 'water':
-          case 'thunder':
-          case 'ice':
-          case 'dragon':
-            totalValue += this.correctedValues.skill + this.correctedValues.series
-            break
-          case 'element1':
-          case 'element2':
-          case 'affinity':
-            totalValue += this.correctedValues.skill
-            break
-        }
-        return totalValue
-      } else {
-        return '-'
-      }
-    },
   },
 
   methods: {
@@ -342,7 +319,27 @@ export default {
         'increase--text': value > 0,
       }
     },
-    getCorrectedBySkills: (allSkills, args) => {
+    getCorrectedBySeries: function() {
+      const armorKinds = ['head', 'chest', 'arms', 'waist', 'legs']
+      let countBySeries = armorKinds.map(part => this.armorSeries[part]).reduce((acc, cur) => {
+        let key = cur == null ? 'none': cur
+        acc[key] = acc[key] ? acc[key] + 1: 1
+        return acc
+      }, { none: 0 })
+      let countSeries = 0
+      for (let [key, value] of Object.entries(countBySeries)) {
+        if (key !== 'none' && value >= 3) {
+          countSeries = value
+        }
+      }
+      switch (countSeries) {
+        case 3:  return 1
+        case 4:  return 2
+        case 5:  return 3
+        default: return 0
+      }
+    },
+    getCorrectedBySkills: function(allSkills, args) {
       let bv = args.baseValue,
           cv = 0, lv = 0
       switch (args.name) {
@@ -386,6 +383,8 @@ export default {
               switch (lv) {
                 case 1: cv += Math.floor(bv * 0.05); break
                 case 2: cv += Math.floor(bv * 0.10); break
+                case 3: cv += Math.floor(bv * 0.10); break
+                case 4: cv += Math.floor(bv * 0.10); break
               }
             }
           }
@@ -395,7 +394,24 @@ export default {
               switch (lv) {
                 case 1: cv += Math.floor(bv * 0.05); break
                 case 2: cv += Math.floor(bv * 0.10); break
+                case 3: cv += Math.floor(bv * 0.10); break
+                case 4: cv += Math.floor(bv * 0.10); break
               }
+            }
+          }
+          if (Object.prototype.hasOwnProperty.call(allSkills, '風雷合一')) {
+            if (args.elementName === '雷' || args.elementName === '龍') {
+              lv = allSkills['風雷合一'] > 5 ? 5: allSkills['風雷合一']
+              switch (lv) {
+                case 1: this.stormsoulMagnification = 1.05; break
+                case 2: this.stormsoulMagnification = 1.10; break
+                case 3: this.stormsoulMagnification = 1.15; break
+                case 4: this.stormsoulMagnification = 1.15; break
+                case 5: this.stormsoulMagnification = 1.15; break
+              }
+            } else {
+              this.stormsoulMagnification = 1
+              this.correctedValues.stormsoul = 0
             }
           }
           break
@@ -507,6 +523,7 @@ export default {
               case 2: cv += 2; break
               case 3: cv += 3; break
               case 4: cv += 4; break
+              case 5: cv += 4; break
             }
           }
           break
@@ -544,6 +561,7 @@ export default {
               case 2: cv += 2; break
               case 3: cv += 3; break
               case 4: cv += 4; break
+              case 5: cv += 4; break
             }
           }
           break
@@ -554,6 +572,53 @@ export default {
       }
       */
       return cv
+    },
+    fixedValue: function() {
+      if (this.$props.baseValue != null) {
+        let totalValue = parseInt(this.$props.baseValue, 10)
+        if (this.$props.noCorrected) {
+          return totalValue
+        }
+        switch (this.$props.name) {
+          case 'attack':
+            totalValue += this.correctedValues.skill + this.correctedValues.item
+            break
+          case 'defense':
+            totalValue += this.correctedValues.skill + this.correctedValues.item + this.correctedValues.bonus
+            break
+          case 'fire':
+          case 'water':
+          case 'thunder':
+          case 'ice':
+          case 'dragon':
+            totalValue += this.correctedValues.skill + this.correctedValues.series
+            break
+          case 'element1':
+          case 'element2':
+            if (!this.$props.elementName) {
+              totalValue = ''
+            } else {
+              if (this.$props.elementName === '雷' || this.$props.elementName === '龍') {
+                let tempValue = totalValue + this.correctedValues.skill
+                totalValue = Math.floor(tempValue * this.stormsoulMagnification)
+                this.correctedValues.stormsoul = totalValue - tempValue
+                //console.log('fixedValue::%s: %f * %d = %d (+%d)', this.$props.elementName, this.stormsoulMagnification, tempValue, totalValue, this.correctedValues.stormsoul)
+              } else {
+                totalValue += this.correctedValues.skill
+              }
+            }
+            break
+          case 'affinity':
+            totalValue += this.correctedValues.skill
+            if (totalValue > 100) {
+              totalValue = 100
+            }
+            break
+        }
+        return totalValue
+      } else {
+        return '-'
+      }
     },
   },
 

@@ -52,6 +52,7 @@
               dense
               persistent-hint
               single-line
+              @change="changedArmorLevel()"
             ></v-select>
           </div>
         </template>
@@ -157,16 +158,6 @@ export default {
     loading: true,
   }),
 
-  watch: {
-    selectedLevel: function (newlv/*, oldlv*/) {
-      let part = ['head', 'chest', 'arms', 'waist', 'legs'][this.item.part]
-      //console.log("EquipmentItem.vue::changed %s selectedLevel: %s -> %s", part, oldlv, newlv)
-      //console.log('Current stored part level: %d', this.$store.getters.armorLevelKindOf(part))
-      this.$store.dispatch('setArmorLevel', {part: part, level: newlv})
-      //console.log('Saved to stored part level: %d', this.$store.getters.armorLevelKindOf(part))
-    },
-  },
-
   created() {
     this.initialize()
   },
@@ -229,6 +220,9 @@ export default {
         }
       }
       this.$root.$emit(`open:${target}`, this.item)
+    },
+    changedArmorLevel: function () {
+      this.$store.dispatch('setArmorLevel', {part: ['head', 'chest', 'arms', 'waist', 'legs'][this.item.part], level: this.selectedLevel})
     },
     initialize: function () {
       if (this.$props.id) {

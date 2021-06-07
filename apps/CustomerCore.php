@@ -66,9 +66,10 @@ final class CustomerCore extends abstractClass {
         $this->the_request = match( $this->request_method ) {
             'POST'   => filter_input_array( INPUT_POST,   $options ),
             'GET'    => filter_input_array( INPUT_GET,    $options ),
-            'PUT'    => filter_input_array( INPUT_POST,   $options ),
-            'DELETE' => filter_input_array( INPUT_POST,   $options ),
+            //'PUT'    => filter_input_array( INPUT_POST,   $options ),
+            //'DELETE' => filter_input_array( INPUT_POST,   $options ),
             'COOKIE' => filter_input_array( INPUT_COOKIE, $options ),
+            default  => filter_input_array( INPUT_POST,   $options ),
         };
         if ( ! $this->the_request ) {
             $this->the_request = json_decode( file_get_contents( 'php://input' ), true );
@@ -193,20 +194,20 @@ final class CustomerCore extends abstractClass {
      */
     protected function return_response( array $data ): void {
         if ( isset( $_SERVER['HTTP_ORIGIN'] ) ) {
-            $allow_origin_regex = '@^https?://(.*)?ka2.org(|:81)@';// '@^https?://(localhost:8080|127\.0\.0\.1|(.*)?ka2.org)@';
+            $allow_origin_regex = '@^https?://(localhost:8080|192\.168\.0\.19:8080|(.*)?ka2.org)$@';// '@^https?://(localhost:8080|127\.0\.0\.1|(.*)?ka2.org)@';
             $origin = preg_match( $allow_origin_regex, $_SERVER['HTTP_ORIGIN'] ) ? $_SERVER['HTTP_ORIGIN'] : '*';
-            $allow_methods = $origin === '*' ? 'GET, OPTIONS' : 'GET, POST, PUT, DELETE, OPTIONS';
+            $allow_methods = $origin === '*' ? 'GET,OPTIONS' : 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS';
             $allow_credentials = $origin === '*' ? 'false' : 'true';
         } else {
             $origin = '*';
-            $allow_methods = 'GET, OPTIONS';
+            $allow_methods = 'GET,OPTIONS';
             $allow_credentials = 'false';
         }
         //$this->logger( [ $origin, $allow_methods, $allow_credentials, $this->request_method, $this->the_request ] );
         header( 'Access-Control-Allow-Origin: '. $origin );
         header( 'Access-Control-Allow-Methods: '. $allow_methods );
         header( 'Access-Control-Allow-Credentials: '. $allow_credentials );
-        header( 'Access-Control-Allow-Headers: X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept' );
+        header( 'Access-Control-Allow-Headers: X-Requested-With,Origin,X-Csrftoken,Content-Type,Accept' );
         header( 'Access-Control-Expose-Headers: X-Custom-header', false );
         header( 'Content-Type: application/json; charset=utf-8' );
         

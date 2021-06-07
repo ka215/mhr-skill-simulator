@@ -96,7 +96,9 @@
                   </td>
                 </template>
                 <template v-else>
-                  <th class="text-subtitle-1" style="width: 11em;">{{ skill.name }}</th>
+                  <th class="text-subtitle-1" style="width: 11em;">
+                    <span :data-ruby="skill.ruby_name">{{ skill.name }}</span>
+                  </th>
                   <td class="text--secondary text-left pa-3" style="width: calc(50% - 11em);">{{ skill.description }}</td>
                   <td
                     class="pa-0"
@@ -136,14 +138,6 @@
 export default {
   name: 'SkillList',
 
-  components: {
-    //
-  },
-
-  props: {
-    //
-  },
-
   data: () => ({
     labels: {
       title: 'スキル一覧',
@@ -156,57 +150,19 @@ export default {
   }),
 
   created() {
-    if (this.$store.state.skills.length == 0) {
-      //console.log('DBからデータを取得してストアへキャッシュ')
-      this.getData('index.php?tbl=skills')
-    } else {
-      this.sleep(1).then(() => {
-        //console.log(`SkillList.vue::created:`, this.$store.state.skills)
-        //console.log('ストアにデータがあるのでキャッシュを読み込む', this.$store.state.skills.length)
-        this.skills = this.$store.state.skills
-        this.skills.sort((a, b) => {
-          return a.ruby_name.localeCompare(b.ruby_name, 'ja')
-        })
-        this.loading = false
-      }).then(() => {
-        this.adjustCellHeight()
+    this.sleep(1).then(() => {
+      //console.log(`SkillList.vue::created:`, this.$store.state.skills)
+      this.skills = this.$store.state.skills.concat()
+      this.skills.sort((a, b) => {
+        return a.ruby_name.localeCompare(b.ruby_name, 'ja')
       })
-    }
-  },
-
-  mounted() {
-    //
-  },
-
-  computed: {
-    //
+      this.loading = false
+    }).then(() => {
+      this.adjustCellHeight()
+    })
   },
 
   methods: {
-    getData: async function(path) {
-      const instance = this.createAxios('//dev2.ka2.org/mhr/')// <- on the XAMPP only
-      //const instance = this.createAxios('//ka2.org/mhr/')// for production
-      await instance.get(path)
-      .then(response => {
-        response.data.sort((a, b) => {
-          return a.ruby_name.localeCompare(b.ruby_name, 'ja')
-        })
-        this.$store.dispatch('initData', {property: 'skills', data: response.data})
-        //this.$store.state.skills = this.skills
-        //console.log('SkillList.vue::getData:', response.data, this.skills)
-      })
-      .catch(error => {
-        console.error(`Failure to retrieve skill data. (${error})`)
-      })
-      .finally(() => {
-        this.sleep(1).then(() => {
-          this.skills  = this.$store.state.skills
-          this.loading = false
-        }).then(() => {
-          this.adjustCellHeight()
-        })
-      })
-    },
     adjustCellHeight: function() {
       document.querySelectorAll('.skill-levels table').forEach((elm) => {
         let parentHeight = elm.closest('td').clientHeight,
@@ -217,6 +173,5 @@ export default {
       })
     },
   },
-
 }
 </script>

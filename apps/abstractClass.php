@@ -10,7 +10,8 @@ namespace MHRise\SkillSimulator;
 if ( !class_exists( 'abstractClass' ) ) :
 
 abstract class abstractClass {
-    const VERSION   = '0.1.3';
+    const VERSION   = '0.1.6';
+    const DEBUG_LOG = true;
 
     /**
      * Holds application's directory path
@@ -228,18 +229,26 @@ abstract class abstractClass {
      *
      * @access protected
      */
-    protected function logger( mixed $content ): void {
+    protected function logger( mixed $content, ?string $log_dest = null ): void {
         $log_content = match( gettype( $content ) ) {
             'array'   => '(Array) ' . json_encode( $content ),
             'object'  => '(Object) ' . json_encode( $content ),
-            'boolean' => $content ? 'true': 'false',
-            'integer' => (int)$content,
-            'double'  => (float)$content,
-            'NULL'    => null,
-            default   => (string)$content,
+            'boolean' => '(bool) ' . $content ? 'true': 'false',
+            'integer' => '(int) ' . (int)$content,
+            'double'  => '(float) ' . (float)$content,
+            'NULL'    => '(null)',
+            default   => '(string) ' . (string)$content,
         };
-        $dest = dirname( __FILE__, 2 ) . '/debug.log';
-        error_log( $log_content . PHP_EOL, 3, $dest );
+        $nowDateTime = new \DateTime( 'NOW', new \DateTimeZone( $this->get_option( 'timezone' ) ) );
+        $now_date = '['. $nowDateTime->format( 'Y-m-d H:i:s' ) .'] ';
+        if ( ! empty( $log_dest ) && is_writable( $log_dest ) ) {
+            $dest = $log_dest;
+        } else {
+            $dest = dirname( __FILE__, 2 ) . '/debug.log';
+        }
+        if ( self::DEBUG_LOG ) {
+            error_log( $now_date . $log_content . PHP_EOL, 3, $dest );
+        }
     }
 
 }

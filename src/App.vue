@@ -142,6 +142,7 @@ export default {
   created() {
     this.darkTheme = this.$vuetify.theme.isDark
     this.getMasterData()
+    this.loadUserData()
     console.log('App.vue::isLocalhost:', this.isLocalhost())
   },
 

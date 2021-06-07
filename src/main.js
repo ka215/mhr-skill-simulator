@@ -6,12 +6,15 @@ import axios     from 'axios'
 import VueAxios  from 'vue-axios'
 import vuetify   from './plugins/vuetify'
 import functions from './plugins/functions'
+import userCache from './plugins/userCache'
 import './styles/mhrss.scss'
 import './styles/mhrssi.scss'
 
 Vue.config.productionTip = false
 
 Vue.use(VueAxios, axios)
+
+Vue.use(userCache, {cacheName: process.env.VUE_APP_CACHE_NAME})
 
 Vue.mixin(functions)
 

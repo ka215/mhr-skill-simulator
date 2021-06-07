@@ -148,6 +148,9 @@ export default {
       deleteAll: '全ての護石削除',
       import: 'インポート',
       export: 'エクスポート',
+      confirmation: '確認',
+      information: '通知',
+      error: 'エラー',
     },
     talismans: null,
     search: null,
@@ -163,7 +166,19 @@ export default {
       { align: 'center', value: 'emissions',     width: 105,   filterable: false, text: '排出数', },*/
       { align: 'center', value: 'id',            width: 85,    sortable: false, filterable: false, text: '管理', },
     ],
+    resultNotes: null,
   }),
+
+  watch: {
+    resultNotes: function(value) {
+      this.sleep(300).then(() => {
+        this.reloadTalismans()
+        if (value) {
+          this.$root.$emit('open:notification', value)
+        }
+      })
+    },
+  },
 
   created() {
     switch(this.$vuetify.breakpoint.name) {
@@ -187,6 +202,57 @@ export default {
         break
     }
     this.loadTalismans()
+    this.$root.$on('delete:talisman', (params) => {
+      let equippedTalismanId = this.$store.getters.equipmentKindOf('talisman', 'id')
+      if (equippedTalismanId) {
+        let deleteTalismanId = params.conditions[0][2]
+        //console.log('ここで装備中の護石を取り外す。装備中の護石:', equippedTalismanId, deleteTalismanId )
+        if (Array.isArray(deleteTalismanId) && deleteTalismanId.includes(equippedTalismanId)) {
+          this.$store.dispatch('setEquipment', {property: 'talisman', data: {}, slots: {}})
+          //console.log('take off: %d', equippedTalismanId)
+        } else
+        if (deleteTalismanId == equippedTalismanId) {
+          this.$store.dispatch('setEquipment', {property: 'talisman', data: {}, slots: {}})
+          //console.log('take off: %d', equippedTalismanId)
+        }
+      }
+      this.saveData('put', params, (response) => {
+        let notices = {
+          title: this.labels.information,
+          messages: [],
+          emit: '',
+        }
+        if (response.data.state == 201) {
+          notices.messages = [ '護石を削除しました。' ]
+          let deleteTalismanId = params.conditions[0][2],
+              baseRequest = 'index.php?tbl=talismans&filters[id]='
+          if (Array.isArray(deleteTalismanId)) {
+            deleteTalismanId.forEach(id => {
+              this.$userCache.remove(baseRequest + id, null, (result) => {
+                if (result) {
+                  this.$store.dispatch('removeItemById', {property: 'talismans', data: id})
+                  console.log(`護石ID:${id}がキャッシュから削除された。`)
+                }
+              })
+            })
+            this.resultNotes = notices
+          } else {
+            this.$userCache.remove(baseRequest + deleteTalismanId, null, (result) => {
+              if (result) {
+                this.$store.dispatch('removeItemById', {property: 'talismans', data: deleteTalismanId})
+                console.log(`護石ID:${deleteTalismanId}がキャッシュから削除された。`)
+              }
+            }).finally(() => {
+              this.resultNotes = notices
+            })
+          }
+        } else {
+          notices.title = this.labels.error
+          notices.messages = [ '護石の削除に失敗しました。', 'もう一度お試しください。' ]
+          this.resultNotes = notices
+        }
+      })
+    })
   },
 
   mounted() {
@@ -204,10 +270,8 @@ export default {
 
   methods: {
     loadTalismans: function() {
-      const allTalismans = this.$store.state.talismans.concat()
-      console.log('TalismanManager.vue::loadTalismans:', this.$store.state.talismans)
-      // 個別ユーザーごとの絞り込み処理が必要
-      //
+      const allTalismans = this.$store.state.talismans
+      //console.log('TalismanManager.vue::loadTalismans:', this.$store.state.talismans)
       let has_skills = []
       allTalismans.forEach((item, i, self) => {
         item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
@@ -231,62 +295,46 @@ export default {
       this.talismans = allTalismans
     },
     deleteOne: function(id) {
-      let params = {
+      const params = {
         table: 'talismans',
         data: {disabled: true},
         conditions: [ ['id', '=', id], ['disabled', '=', false] ],
         operator: 'and',
       }
-      this.saveData('put', params, (response) => {
-        let notices = {
-          title: null,
-          messages: [],
-        }
-        if (response.data.state == 201) {
-          this.reloadTalismansMaster()
-          notices.title = '通知'
-          notices.messages = [ `護石(ID:${id})を削除しました。` ]
-        } else {
-          notices.title = 'エラー'
-          notices.messages = [ `護石(ID:${id})の削除に失敗しました。`, 'もう一度お試しください。' ]
-        }
-        this.$root.$emit('open:notification', notices)
-      })
+      let notices = {
+        title: this.labels.confirmation,
+        messages: [ 'この護石を削除してよろしいですか？' ],
+        close: 'キャンセル',
+        commit: '削除する',
+        emit: 'delete:talisman',
+        data: params,
+      }
+      if (id == this.$store.getters.equipmentKindOf('talisman', 'id')) {
+        notices.messages = [ '<span class="red--text">現在装備中の護石です。</span>', '削除すると装備から外されますがよろしいですか？' ]
+      }
+      this.$root.$emit('open:notification', notices)
     },
     deleteAll: function() {
-      let deleteIds = this.talismans.map(item => item.id),//.join(','),
-          params = {
+      const deleteIds = this.talismans.map(item => item.id)
+      const params = {
         table: 'talismans',
         data: {disabled: true},
         conditions: [ ['id', 'in', deleteIds], ['disabled', '=', false] ],
         operator: 'and',
       }
-      console.log(params)
-      this.saveData('put', params, (response) => {
-        let notices = {
-          title: null,
-          messages: [],
-        }
-        if (response.data.state == 201) {
-          this.reloadTalismansMaster()
-          notices.title = '通知'
-          notices.messages = [ `すべての護石(ID:${deleteIds})を削除しました。` ]
-        } else {
-          notices.title = 'エラー'
-          notices.messages = [ '護石の削除に失敗しました。', 'もう一度お試しください。' ]
-        }
-        this.$root.$emit('open:notification', notices)
-      })
+      let notices = {
+        title: this.labels.confirmation,
+        messages: [ '<span class="red--text">すべての護石を削除します。</span>', '装備中の護石は外されます。削除してよろしいですか？' ],
+        close: 'キャンセル',
+        commit: '削除する',
+        emit: 'delete:talisman',
+        data: params,
+      }
+      this.$root.$emit('open:notification', notices)
     },
-    reloadTalismansMaster: async function() {
-      this.$store.dispatch('resetMasterData', {property: 'talismans'})
-      const instance = this.createAxios(process.env.VUE_APP_PROD_URL)
-      await instance.get('index.php?tbl=talismans&filters[disabled]=false')
-      .then(response => {
-        this.$store.dispatch('initData', {property: 'talismans', data: response.data})
-      })
-      .catch(error => {
-        console.error(`Failure to reload talisman data.`, error)
+    reloadTalismans: function() {
+      this.$userCache.loadAll((cacheData) => {
+        this.$store.dispatch('initData', {property: 'talismans', data: cacheData})
       })
     },
   },

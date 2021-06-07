@@ -14,17 +14,27 @@
           <v-card-title>{{ labels.title }}</v-card-title>
           <v-divider />
         </template>
-        <v-card-text
-          class="text-center"
-          v-html="content"
-        ></v-card-text>
+        <v-card-text>
+          <div
+            class="pt-6 pb-2 text-center"
+            v-html="content"
+          ></div>
+        </v-card-text>
         <v-divider />
         <v-card-actions>
           <v-spacer />
           <v-btn
             text
+            :class="['grey--text', {'text--lighten-1': $vuetify.theme.isDark}, {'text--darken-1': !$vuetify.theme.isDark}]"
             @click="dialog = false"
           >{{ labels.close }}</v-btn>
+          <template v-if="emitEvent">
+            <v-btn
+              text
+              :class="[{'amber--text': $vuetify.theme.isDark}, {'light-blue--text': !$vuetify.theme.isDark}, 'text--accent-4']"
+              @click="doSubmit()"
+            >{{ labels.commit }}</v-btn>
+          </template>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -40,17 +50,30 @@ export default {
     labels: {
       title: '',
       close: '閉じる',
+      commit: '送信する',
     },
     content: '',
+    emitEvent: null,
+    emitArgs: null,
   }),
 
   created() {
     this.$root.$on('open:notification', (notices) => {
-      if (Object.prototype.hasOwnProperty.call(notices, 'title') && notices.title) {
-        this.labels.title = notices.title
-      }
-      if (Object.prototype.hasOwnProperty.call(notices, 'messages') && notices.messages.length > 0) {
-        this.content = notices.messages.join('<br>')
+      for (let [key, value] of Object.entries(notices)) {
+        switch (key) {
+          case 'messages':
+            this.content = value.join('<br>')
+            break
+          case 'emit':
+            this.emitEvent = value
+            break
+          case 'data':
+            this.emitArgs = value
+            break
+          default:
+            this.labels[key] = value
+            break
+        }
       }
       //console.log('Notification.vue::open:notification', notices, this.title, this.content)
       this.dialog = true
@@ -65,6 +88,13 @@ export default {
         case 'sm':
         default: return '600px'
       }
+    },
+  },
+
+  methods: {
+    doSubmit: function() {
+      this.$root.$emit(this.emitEvent, this.emitArgs)
+      this.dialog = false
     },
   },
 

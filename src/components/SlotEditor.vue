@@ -37,6 +37,7 @@
                   color="primary"
                   item-text="name"
                   item-value="id"
+                  @change="changeSlots()"
                 >
                   <template v-slot:item="data">
                     <v-list-item-icon>
@@ -169,9 +170,13 @@ export default {
       // console.log('SlotEditor.vue::loadSlotStatus', this.item, currentSlots)
       this.values = currentSlots
     },
+    changeSlots: function() {
+      //console.log('!:', this.values)
+      this.$store.dispatch('setEquipment', {property: this.getEquipmentKind(this.item), slots: this.values})
+    },
     commitEdit: function() {
       // console.log('SlotEditor.vue::commitEdit:save', this.values)
-      this.$store.dispatch('setEquipment', {property: this.getEquipmentKind(this.item), slots: this.values})
+      this.changeSlots()
       this.dialog = false
     },
   },

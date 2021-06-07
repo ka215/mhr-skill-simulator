@@ -287,13 +287,13 @@ export default {
       armor: [
         { value: 'name',               align: 'start',  filterable: false, text: '防具名', width: 150, },/*
         { value: 'series', filterable: false, text: 'シリーズ名', }, */
-        { value: 'rarity',             align: 'center', filterable: false, text: 'レア度', },
-        { value: 'defense',            align: 'center', filterable: false, text: '防御力', },
-        { value: 'fire_resistance',    align: 'center', filterable: false, text: '火耐性', },
-        { value: 'water_resistance',   align: 'center', filterable: false, text: '水耐性', },
-        { value: 'thunder_resistance', align: 'center', filterable: false, text: '雷耐性', },
-        { value: 'ice_resistance',     align: 'center', filterable: false, text: '氷耐性', },
-        { value: 'dragon_resistance',  align: 'center', filterable: false, text: '龍耐性', },
+        { value: 'rarity',             align: 'center', filterable: false, text: 'レア度', width: 70, },
+        { value: 'defense',            align: 'center', filterable: false, text: '防御力', width: 70, },
+        { value: 'fire_resistance',    align: 'center', filterable: false, text: '火耐性', width: 70, },
+        { value: 'water_resistance',   align: 'center', filterable: false, text: '水耐性', width: 70, },
+        { value: 'thunder_resistance', align: 'center', filterable: false, text: '雷耐性', width: 70, },
+        { value: 'ice_resistance',     align: 'center', filterable: false, text: '氷耐性', width: 70, },
+        { value: 'dragon_resistance',  align: 'center', filterable: false, text: '龍耐性', width: 70, },
         { value: 'slots',              align: 'center', filterable: false, text: 'スロット', width: 105, },
         { value: 'skills_text',                         sortable:   false, text: 'スキル', }
       ],
@@ -343,75 +343,77 @@ export default {
           this.labels.name = this.item.name
           this.tabs = this.getEquipType(this.kind)
           this.weaponType = this.item.type
-          this.retrieveData('weapons', () => {
-            this.weapons = this.$store.state.weapons.concat()
-            //console.log(this.weapons)
-            this.weapons.forEach((item, i, self) => {
-              let elms = [ this.getElementName(item.element1) ]
-              if (item.element2 != 0) {
-                elms.push(this.getElementName(item.element2))
-              }
-              item.elements = elms.join(', ')
-              item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
-              self[i] = item
-            })
-            this.weapons.sort((a, b) => {
-              return a.ruby_name.localeCompare(b.ruby_name, 'ja')
-            })
-            this.dialog = this.weapons.length > 0
+          this.weapons = this.$store.state.weapons.concat()
+          //console.log(this.weapons)
+          this.weapons.forEach((item, i, self) => {
+            let elms = [ this.getElementName(item.element1) ]
+            if (item.element2 != 0) {
+              elms.push(this.getElementName(item.element2))
+            }
+            item.elements = elms.join(', ')
+            item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
+            self[i] = item
           })
+          this.weapons.sort((a, b) => {
+            return a.ruby_name.localeCompare(b.ruby_name, 'ja')
+          })
+          this.weapons.sort((a, b) => {
+            return (a.rarity < b.rarity ? 1: -1)
+          })
+          this.dialog = this.weapons.length > 0
           break
-        case 'armor':
+        case 'armor': {
           this.labels.title = this.getEquipType(this.kind, this.item.part) + '防具変更'
           this.labels.name = this.item.name
           this.armorPart = this.item.part
-          this.retrieveData('armors', () => {
-            this.armors = this.$store.state.armors.concat()
-            let has_skills = []
-            this.armors.forEach((item, i, self) => {
-              item.name  = item[`name_${this.$store.getters.playerDataOf('gender')}`]
-              item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
-              let tmp_array = []
-              for (let [key, value] of Object.entries(item.skills)) {
-                tmp_array.push(`${key}(${value})`)
-                has_skills.push(key)
-              }
-              item.skills_text = tmp_array.join(', ')
-              self[i] = item
-            })
-            this.armors.sort((a, b) => {
-              return a[`ruby_name_${this.$store.getters.playerDataOf('gender')}`].localeCompare(b[`ruby_name_${this.$store.getters.playerDataOf('gender')}`], 'ja')
-            })
-            this.ac_skills = has_skills
-            this.dialog = this.armors.length > 0
+          this.armors = this.$store.state.armors.concat()
+          let has_skills = []
+          this.armors.forEach((item, i, self) => {
+            item.name  = item[`name_${this.$store.getters.playerDataOf('gender')}`]
+            item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
+            let tmp_array = []
+            for (let [key, value] of Object.entries(item.skills)) {
+              tmp_array.push(`${key}(${value})`)
+              has_skills.push(key)
+            }
+            item.skills_text = tmp_array.join(', ')
+            self[i] = item
           })
+          this.armors.sort((a, b) => {
+            return a[`ruby_name_${this.$store.getters.playerDataOf('gender')}`].localeCompare(b[`ruby_name_${this.$store.getters.playerDataOf('gender')}`], 'ja')
+          })
+          this.armors.sort((a, b) => {
+            return (a.rarity < b.rarity ? 1: -1)
+          })
+          this.ac_skills = has_skills
+          this.dialog = this.armors.length > 0
           break
-        case 'talisman':
+        }
+        case 'talisman': {
           this.labels.title = this.getEquipType(this.kind, 0) + '変更'
           this.labels.name = this.item.name
-          this.retrieveData('talismans', () => {
-            this.talismans = this.$store.state.talismans.concat()
-            let has_skills = []
-            this.talismans.forEach((item, i, self) => {
-              item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
-              let tmp_array = []
-              for (let [key, value] of Object.entries(item.skills)) {
-                tmp_array.push(`${key}(${value})`)
-                has_skills.push(key)
-              }
-              item.skills_text = tmp_array.join(', ')
-              self[i] = item
-            })
-            this.talismans.sort((a, b) => {
-              return (a.rarity < b.rarity ? 1: -1)
-            })
-            this.talismans.sort((a, b) => {
-              return (a.worth < b.worth ? 1: -1)
-            })
-            this.ac_skills = has_skills
-            this.dialog = true// this.talismans.length > 0
+          this.talismans = this.$store.state.talismans.concat()
+          let has_skills = []
+          this.talismans.forEach((item, i, self) => {
+            item.slots = Number(`${item.slot1}${item.slot2}${item.slot3}`)
+            let tmp_array = []
+            for (let [key, value] of Object.entries(item.skills)) {
+              tmp_array.push(`${key}(${value})`)
+              has_skills.push(key)
+            }
+            item.skills_text = tmp_array.join(', ')
+            self[i] = item
           })
+          this.talismans.sort((a, b) => {
+            return (a.rarity < b.rarity ? 1: -1)
+          })
+          this.talismans.sort((a, b) => {
+            return (a.worth < b.worth ? 1: -1)
+          })
+          this.ac_skills = has_skills
+          this.dialog = true// this.talismans.length > 0
           break
+        }
       }
     })
   },

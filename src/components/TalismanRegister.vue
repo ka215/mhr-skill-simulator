@@ -487,6 +487,10 @@ export default {
         }
         if (response.data.state == 201) {
           newTalisman.id = response.data.id
+          // Save into cache storage
+          let request = /*`talisman/${response.data.id}`,*/`index.php?tbl=talismans&filters[id]=${response.data.id}`,
+              cacheContent = newTalisman
+          this.$userCache.save(request, response, cacheContent)
           this.$store.dispatch('addData', {property: 'talismans', data: newTalisman})
           notices.title = '通知'
           notices.messages = [ '護石を登録しました。', '登録された護石は護石管理から確認・削除できます。' ]
@@ -496,6 +500,8 @@ export default {
         }
         //console.log('After talisman insertion:', result, notices)
         this.$root.$emit('open:notification', notices)
+        //}, (response) => {
+        //console.log('saveData::interceptors:', response)
       })
     },
     calculateWorth: function() {

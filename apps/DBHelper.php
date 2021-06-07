@@ -218,7 +218,9 @@ trait DBHelper {
                 }
             }
             $result = $sth->execute();
-            return $result && $sth->rowCount() != 0;
+            $rows = $sth->rowCount();
+            $this->logger( [$result, $rows] );
+            return $result;
         } catch ( \PDOException $e ) {
             throw $e;
             return false;
