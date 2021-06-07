@@ -23,8 +23,9 @@ The current latest version: v0.1.6
 
 <https://ka2.org/mhr/v0.1.6/>
 
-Note: the content of the master data in the demo version is subject to change at any time.
-Note: the data exported by the demo version may not be able to be continued in future applications.
+*Notes:*
+- *The content of the master data in the demo version is subject to change at any time.*
+- *The data exported by the demo version may not be able to be continued in future applications.*
 
 ## Contributions
 
