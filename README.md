@@ -15,13 +15,15 @@
 1. [Chapter 9](https://ka2.org/mhrise-skill-simulator-creation-chapter-9)
 1. [Chapter 10](https://ka2.org/mhrise-skill-simulator-creation-chapter-10)
 1. [Chapter 11](https://ka2.org/mhrise-skill-simulator-creation-chapter-11)
-1. Chapter 12 - Coming Soon!
+1. [Chapter 12](https://ka2.org/mhrise-skill-simulator-creation-chapter-12)
+1. Chapter 13 - Coming Soon!
+
 
 ## Demo at this time
 
-The current latest version: v0.1.6
+The current latest version: v0.1.7
 
-<https://ka2.org/mhr/v0.1.6/>
+<https://ka2.org/mhr/v0.1.7/>
 
 *Notes:*
 - *The content of the master data in the demo version is subject to change at any time.*
