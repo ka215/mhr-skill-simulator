@@ -7,6 +7,7 @@
     <TalismanManager />
     <template>
       <Notification />
+      <Importer />
     </template>
   </v-container>
 </template>
@@ -15,6 +16,7 @@
 import TalismanRegister from '@/components/TalismanRegister'
 import TalismanManager from '@/components/TalismanManager'
 import Notification from '@/components/Notification'
+import Importer from '@/components/Importer'
 
 export default {
   name: 'Talismans',
@@ -23,6 +25,7 @@ export default {
     TalismanRegister,
     TalismanManager,
     Notification,
+    Importer,
   },
 
   data: () => ({

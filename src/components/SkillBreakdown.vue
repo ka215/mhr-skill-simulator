@@ -119,7 +119,7 @@ export default {
 
   watch: {
     summary: function(value) {
-      console.log('SkillBreakdown.vue::watch.summary:', value)
+      //console.log('SkillBreakdown.vue::watch.summary:', value)
       this.$store.dispatch('setAggSkills', {aggrigation: value})
     }
   },

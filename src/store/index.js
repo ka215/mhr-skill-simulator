@@ -13,6 +13,7 @@ const getInitialState = () => {
     skill_evaluation: [],
     weapon_meta: [],
     ammo: [],
+    loadouts: [],
     weapon: {
       data: {},
       slots: {},
@@ -51,6 +52,7 @@ const getInitialState = () => {
       gender: 'female',
       items: [],
     },
+    now_loadouts: null,
   }
 }
 
@@ -186,6 +188,18 @@ const mutations = {
     let targetIndex = state[payload.property].findIndex(item => item.id == payload.id)
     state[payload.property].splice(targetIndex, 1)
   },
+  // Usage: $store.commit('upsertItemById', {property: 'talismans', data: <object>})
+  upsertItemById: (state, payload) => {
+    if (Object.prototype.hasOwnProperty.call(payload.data, 'id')) {
+      //console.log('upsertItemById:', payload.property, state[payload.property], typeof state[payload.property])
+      let targetIndex = state[payload.property].findIndex(item => item.id == payload.data.id)
+      if (targetIndex >= 0) {
+        state[payload.property].splice(targetIndex, 1, payload.data)
+      } else {
+        state[payload.property].push(payload.data)
+      }
+    }
+  },
 }
 
 const actions = {
@@ -218,6 +232,9 @@ const actions = {
   },
   removeItemById: ({ commit }, payload) => {
     commit('removeItemById', payload)
+  },
+  upsertData: ({ commit }, payload) => {
+    commit('upsertItemById', payload)
   },
 }
 

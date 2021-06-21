@@ -229,6 +229,9 @@ export default {
         this.item = this.$store.getters.equipmentKindOf(this.$props.type)
         if (this.isArmor(this.$props.type)) {
           this.selectedLevel = this.$store.getters.armorLevelKindOf(this.item.part)
+          if (!Object.prototype.hasOwnProperty.call(this.item, 'name')) {
+            this.item.name = this.item[`name_${this.$store.getters.playerDataOf('gender')}`]
+          }
         }
       }
       this.loading = false

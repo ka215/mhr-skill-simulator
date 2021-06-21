@@ -18,29 +18,44 @@ const userCache  = {
         .then(cache => cache.put(request, response))
         .catch(error => console.error('Failed to save cache.', error))
       },
-      /*
-      modify: async function (pattern, axiosResponse) {
-        console.log(pattern, axiosResponse)
-      },
-      * /
-      find: async function (pattern) {
-        let allKeys = this.keys(),
-            cacheData = [],
-            re = new RegExp(pattern, 'i')
-        allKeys.forEach((k, v) => {
-          if (re.test(k)) {
-            console.log('find:', pattern, re, k, v)
+      get: async function (request, callback=null) {
+        return await this.open()
+        .then(cache => cache.match(request))
+        .then(response => response.json())
+        .then(data => {
+          if (callback && typeof callback === 'function') {
+            callback(data)
+          } else {
+            return Promise.reject()
           }
+          return Promise.resolve()
         })
-        console.log(cacheData)
-        return await this.find().then(keys => {
-          let cacheData = []
-          keys.forEach(request => {
-            cacheData.push()
-          })
-        })
+        .catch(error => console.log('', error))
       },
-      */
+      find: async function (pattern, callback=null) {
+        const re = new RegExp(pattern, 'i')
+        const matchRequest = await this.keys()
+        .then(allKeys => {
+          let matchRequest = []
+          allKeys.forEach(key => {
+            if (re.test(key)) {
+              matchRequest.push(key)
+            }
+          })
+          return matchRequest
+        })
+        let cacheData = []
+        if (matchRequest.length > 0) {
+          matchRequest.forEach(async request => {
+            await this.get(request, (data) => {
+              cacheData.push(data)
+            })
+          })
+        }
+        if (callback && typeof callback === 'function') {
+          callback(cacheData)
+        }
+      },
       loadAll: async function (callback=null) {
         return await this.open()
         .then(cache => cache.matchAll())
@@ -102,6 +117,7 @@ const userCache  = {
             blob = new Blob([bom, JSON.stringify(bodyContent, null, 2)], {type: 'application/json'}),
         //let blob = new Blob([JSON.stringify(bodyData, null, 2)], {type: 'application/json'}),
             init = {status: axiosResponse.status, statusText: axiosResponse.statusText, headers: axiosResponse.headers}
+        //console.log('_createResponseObject:', init, blob)
         return new Response(blob, init)
       },
     }

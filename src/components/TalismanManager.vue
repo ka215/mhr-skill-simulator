@@ -109,11 +109,13 @@
           >{{ labels.deleteAll }}</v-btn>
           <v-btn
             class="btn-primary"
-            disabled
+            :disabled="false"
+            @click="importData()"
           >{{ labels.import }}</v-btn>
           <v-btn
             class="btn-primary"
-            disabled
+            :disabled="!talismans || talismans.length == 0"
+            @click="exportData()"
           >{{ labels.export }}</v-btn>
         </v-card-actions>
       </v-list-group>
@@ -220,7 +222,8 @@ export default {
         let notices = {
           title: this.labels.information,
           messages: [],
-          emit: '',
+          close: '閉じる',
+          emit: null,
         }
         if (response.data.state == 201) {
           notices.messages = [ '護石を削除しました。' ]
@@ -231,7 +234,7 @@ export default {
               this.$userCache.remove(baseRequest + id, null, (result) => {
                 if (result) {
                   this.$store.dispatch('removeItemById', {property: 'talismans', data: id})
-                  console.log(`護石ID:${id}がキャッシュから削除された。`)
+                  //console.log(`護石ID:${id}がキャッシュから削除された。`)
                 }
               })
             })
@@ -240,7 +243,7 @@ export default {
             this.$userCache.remove(baseRequest + deleteTalismanId, null, (result) => {
               if (result) {
                 this.$store.dispatch('removeItemById', {property: 'talismans', data: deleteTalismanId})
-                console.log(`護石ID:${deleteTalismanId}がキャッシュから削除された。`)
+                //console.log(`護石ID:${deleteTalismanId}がキャッシュから削除された。`)
               }
             }).finally(() => {
               this.resultNotes = notices
@@ -252,6 +255,12 @@ export default {
           this.resultNotes = notices
         }
       })
+    })
+    this.$root.$on('import:talismans', () => {
+      this.import('talismans')
+    })
+    this.$root.$on('export:talismans', () => {
+      this.export('talismans')
     })
   },
 
@@ -333,9 +342,29 @@ export default {
       this.$root.$emit('open:notification', notices)
     },
     reloadTalismans: function() {
-      this.$userCache.loadAll((cacheData) => {
+      this.$userCache.find('talismans', cacheData => {
         this.$store.dispatch('initData', {property: 'talismans', data: cacheData})
       })
+    },
+    importData: function() {
+      let options = {
+        type: 'talismans',
+        title: '護石データのインポート',
+        content: [ '護石データをインポートします。', 'アップロードするJSONファイルを選んでください。' ],
+        close: 'キャンセル',
+        commit: 'インポートする',
+      }
+      this.$root.$emit('open:importer', options)
+    },
+    exportData: function() {
+      let notices = {
+        title: '護石データのエクスポート',
+        messages: [ '現在の護石データをJSON形式でダウンロードします。', 'エクスポートを実行しますか？' ],
+        close: 'キャンセル',
+        commit: 'エクスポートする',
+        emit: 'export:talismans',
+      }
+      this.$root.$emit('open:notification', notices)
     },
   },
 

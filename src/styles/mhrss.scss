@@ -194,8 +194,9 @@
       .theme--light & { border-right: thin solid rgba(#000000, 0.1); }
     }
   }
-  /* talisman list */
+  /* list */
   &.talisman-info,
+  &.loadouts-info,
   &.decoration-list {
     thead > tr > th:first-child,
     tbody > tr > td:first-child,

@@ -45,6 +45,7 @@ export default {
       { to: '/decorations', icon: 'alpha-d-circle-outline', enabled: true,  label: '装飾品', },
       { to: '/talismans',   icon: 'alpha-t-circle-outline', enabled: true,  label: '護石', },
       { to: '/skills',      icon: 'alpha-s-circle-outline', enabled: true,  label: 'スキル', },
+      { to: '/loadouts',    icon: 'alpha-l-circle-outline', enabled: true,  label: 'マイセット', },
       { to: '/manage',      icon: 'alpha-s-circle-outline', enabled: true,  label: '管理', },
     ],
   }),

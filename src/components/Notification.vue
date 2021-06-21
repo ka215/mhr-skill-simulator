@@ -11,7 +11,9 @@
     >
       <v-card>
         <template v-if="labels.title">
-          <v-card-title>{{ labels.title }}</v-card-title>
+          <v-card-title
+            :class="[{'amber--text': $vuetify.theme.isDark}, {'blue-grey--text': !$vuetify.theme.isDark}, {'text--accent-4': $vuetify.theme.isDark}, {'text--darken-4': !$vuetify.theme.isDark}]"
+          >{{ labels.title }}</v-card-title>
           <v-divider />
         </template>
         <v-card-text>

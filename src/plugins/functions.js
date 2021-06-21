@@ -1,5 +1,3 @@
-//import userCache from './userCache.js'
-
 export default {
   methods: {
     /**
@@ -169,8 +167,16 @@ export default {
      * @return void
      */
     loadUserData: function() {
+      /*
       this.$userCache.loadAll(cacheData => {
         this.$store.dispatch('initData', {property: 'talismans', data: cacheData})
+      })
+      */
+      this.$userCache.find('talismans', cacheData => {
+        this.$store.dispatch('initData', {property: 'talismans', data: cacheData})
+      })
+      this.$userCache.find('loadouts', cacheData => {
+        this.$store.dispatch('initData', {property: 'loadouts', data: cacheData})
       })
     },
     /**
@@ -210,31 +216,112 @@ export default {
       })
     },
     /**
-     * Generate a request object for the CacheAPI from the response transformed by Axios
+     * Check data validity and optimize that for this system.
      *
-     * @param  object axiosResponse
-     * @return object
-     * /
-    createRequestObject: function(axiosResponse) {
-      let url = axiosResponse.config.baseURL + axiosResponse.config.url,
-          payload = {method: axiosResponse.config.method, body: axiosResponse.config.data},
-          requestObject = new Request(url, payload)
-      return requestObject
+     * @param  string dataType - Vuex Store Name
+     * @param  object data     - Parsed JSON File
+     * @return object          - Return empty object if invalid data
+     */
+    sanitizeData: function(dataType, data) {
+      const requiredColumns = {
+        'talismans': [
+          'name',   'rarity', 'slot1', 'slot2', 'slot3',
+          'skills', 'worth',  'id', 'slots', 'skills_text',
+        ],
+        'loadouts': [
+          'id', 'name', 
+          'weapon_id',               'weapon_slots',
+          'head_id',     'head_lv',  'head_slots',
+          'chest_id',    'chest_lv', 'chest_slots',
+          'arms_id',     'arms_lv',  'arms_slots',
+          'waist_id',    'waist_lv', 'waist_slots',
+          'legs_id',     'legs_lv',  'legs_slots',
+          'talisman_id',             'talisman_slots',
+          'skills',
+        ],
+      }
+      let checked = Object.keys(data).filter(key => requiredColumns[dataType].includes(key))
+      if (checked.length == requiredColumns[dataType].length) {
+        // Sanitizes valid data
+        return checked.reduce((acc, cur) => {
+          acc[cur] = data[cur]
+          return acc
+        }, {})
+      } else {
+        // Invalid data
+        return {}
+      }
     },
     /**
-     * Generate a request object for the CacheAPI from the response transformed by Axios
+     * Store the imported JSON file in the Vuex store and Cache Storage.
      *
-     * @param  object axiosResponse
-     * @param  object bodyData
-     * @return object
-     * /
-    createResponseObject: function(axiosResponse, bodyData) {
-      let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]),
-          blob = new Blob([bom, JSON.stringify(bodyData, null, 2)], {type: 'application/json'}),
-      //let blob = new Blob([JSON.stringify(bodyData, null, 2)], {type: 'application/json'}),
-          init = {status: axiosResponse.status, statusText: axiosResponse.statusText, headers: axiosResponse.headers},
-          responseObject = new Response(blob, init)
-      return responseObject
+     * @param  string dataType - Vuex Store Name
+     * @param  object data     - Parsed JSON File
+     * @return void
+     */
+    import: async function(dataType, data) {
+      //console.log('import::_1:%s', dataType, data)
+      let notices = {
+            title: '通知',
+            messages: [],
+            close: '閉じる',
+            emit: null,
+          }
+      if (Array.isArray(data) && data.length > 0) {
+        let throughputs = [],
+            throughput  = 0
+        data.forEach(oneData => {
+          let _data = this.sanitizeData(dataType, oneData)
+          if (Object.keys(_data).length > 0) {
+            throughputs.push({
+              request: `index.php?tbl=${dataType}&filters[id]=${_data.id}`,
+              response: { status: 200, statusText: 'OK', headers: { 'content-length': JSON.stringify(_data).length, 'content-type': 'application/json; charset=utf-8' } },
+              data: _data
+            })
+          }
+        })
+        //console.log('import::_2:', throughputs)
+        await Promise.all(throughputs.map(async item => await this.$userCache.save(item.request, item.response, item.data).then(() => {
+          //console.log('import::_3:', arguments[0], arguments[1].length)
+          this.$store.dispatch('upsertData', { property: dataType, data: item.data })
+          throughput++
+        })))
+        //console.log('import::_4:%d', throughput)
+        if (data.length == throughput) {
+          // Fully complete
+          notices.messages.push('インポートが完了しました。')
+        } else
+        if (throughput > 0) {
+          // Limited completion
+          notices.messages.push('インポートが完了しました。', 'しかし、いくつかのデータのインポートに失敗しました。')
+        } else {
+          // All failed
+          notices.title = 'エラー'
+          notices.messages.push('インポートに失敗しました。', 'JSONデータの内容を確認してやり直してください。')
+        }
+      } else {
+        notices.title = 'エラー'
+        notices.messages.push('インポート用のデータが不正です。')
+      }
+      //console.log('import::_5:', notices)
+      this.$root.$emit('open:notification', notices)
+    },
+    /**
+     * Export the contents of a specified Vuex store in JSON format.
+     *
+     * @param  string dataType - Vuex Store Name
+     * @return void
+     */
+    export: function(dataType) {
+      const data = JSON.stringify(this.$store.state[dataType]),
+            blob = new Blob([data], {type: 'text/plain'}),
+            evnt = document.createEvent('MouseEvents'),
+            a = document.createElement('a')
+      a.download = `mhrss-${dataType}.json`
+      a.href = window.URL.createObjectURL(blob)
+      a.dataset.downloadurl = [/*'text/json'*/'application/json', a.download, a.href].join(':')
+      evnt.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+      a.dispatchEvent(evnt)
     },
     /**
      * Returns which equipment type the object of the equipment item is.

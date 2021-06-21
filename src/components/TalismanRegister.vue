@@ -402,9 +402,7 @@ export default {
       after: (action) => {
         switch (action.type) {
           case 'addData':
-            console.log('TalismanRegister.vue::$store.subscribeAction.addData:', action, action.payload.data.id)
-            // Save to local storage of current user
-            
+            //console.log('TalismanRegister.vue::$store.subscribeAction.addData:', action, action.payload.data.id)
             this.resetTlisman()
             break
         }

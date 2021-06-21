@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Decorations from '../views/Decorations.vue'
 import Talismans from '../views/Talismans.vue'
 import Skills from '../views/Skills.vue'
+import Loadouts from '../views/Loadouts.vue'
 import Manage from '../views/Manage.vue'
 
 Vue.use(VueRouter)
@@ -40,6 +41,11 @@ const routes = [
     path: '/skills',
     name: 'Skills',
     component: Skills,
+  },
+  {
+    path: '/loadouts',
+    name: 'Loadouts',
+    component: Loadouts,
   },
   {
     path: '/manage',

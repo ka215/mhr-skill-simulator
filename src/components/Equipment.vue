@@ -32,12 +32,17 @@
         class="btn-primary"
         elevation="0"
         :disabled="!isEquipExists"
-        @click="saveMyset"
-      >{{ labels.save }}</v-btn>
+        @click="saveLoadouts"
+      >
+        <template v-if="$store.state.now_loadouts">{{ labels.update }}</template>
+        <template v-else>{{ labels.register }}</template>
+      </v-btn>
     </v-card-actions>
     <template>
       <SlotEditor />
       <EquipChanger />
+      <LoadoutsEditor />
+      <Notification />
     </template>
   </v-card>
 </template>
@@ -46,6 +51,8 @@
 import EquipmentItem from '@/components/EquipmentItem'
 import SlotEditor from '@/components/SlotEditor'
 import EquipChanger from '@/components/EquipChanger'
+import LoadoutsEditor from '@/components/LoadoutsEditor'
+import Notification from '@/components/Notification'
 
 export default {
   name: 'Equipment',
@@ -54,6 +61,8 @@ export default {
     EquipmentItem,
     SlotEditor,
     EquipChanger,
+    LoadoutsEditor,
+    Notification,
   },
 
   data: () => ({
@@ -61,7 +70,8 @@ export default {
       title: '装備・装飾品',
       edit: '護石登録',
       reset: '全部外す',
-      save: 'マイセット登録',
+      register: 'マイセット登録',
+      update: 'マイセット更新',
     },
     currentIds: {
       weapon:   0,
@@ -84,18 +94,6 @@ export default {
 
   mounted() {
     this.$store.subscribeAction({
-      /*
-      before: (action) => {
-        if ('setEquipment' === action.type) {
-          this.oldId = this.currentIds[action.payload.property]
-              newId = action.payload.data.id
-          if (oldId != newId) {
-            this.currentIds[action.payload.property] = newId
-            console.log('Equipment.vue::Changed equipment:', action.payload.property, oldId, ' -> ', newId)
-          }
-        }
-      },
-      */
       after: (action/*, state*/) => {
         if ('setEquipment' === action.type) {
           if (Object.prototype.hasOwnProperty.call(action.payload, 'data')) {
@@ -124,11 +122,13 @@ export default {
         if (this.isArmor(kind)) {
           payload.level = null
         }
+        this.$store.dispatch('initData', {property: 'now_loadouts', data: null})
         this.$store.dispatch('setEquipment', payload)
       })
     },
-    saveMyset: function() {
-      alert('Not available yet.')
+    saveLoadouts: function() {
+      let _act = this.$store.state.now_loadouts ? 'update': 'register'
+      this.$root.$emit('save:loadouts', {action: _act})
     },
   },
 
