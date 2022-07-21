@@ -18,10 +18,7 @@
 1. [Chapter 12](https://ka2.org/mhrise-skill-simulator-creation-chapter-12)
 1. [Sammary](https://ka2.org/monster-hunter-rise-skill-simulator)
 
-[](
-1. Chapter 13 - Coming Soon!
-)
-
+<!-- 1. Chapter 13 - Coming Soon! -->
 
 ## Demo at this time
 
