@@ -39,6 +39,16 @@
       <v-container
         fluid
       >
+        <template v-if="!this.isLocalhost()">
+          <div class="mx-auto mb-4 text-center">
+            <Adsense
+              data-ad-client="ca-pub-8602791446931111"
+              data-ad-slot="3626519086"
+              data-ad-format="auto"
+              data-full-width-responsive="yes"
+            ></Adsense>
+          </div>
+        </template>
         <template v-if="loaded">
           <router-view />
         </template>
@@ -62,6 +72,16 @@
               </v-progress-linear>
             </v-col>
           </v-row>
+        </template>
+        <template v-if="!this.isLocalhost()">
+          <div class="mx-auto my-3 text-center">
+            <Adsense
+              data-ad-client="ca-pub-8602791446931111"
+              data-ad-slot="3626519086"
+              data-ad-format="auto"
+              data-full-width-responsive="yes"
+            ></Adsense>
+          </div>
         </template>
       </v-container>
     </v-main>
@@ -143,7 +163,9 @@ export default {
     this.darkTheme = this.$vuetify.theme.isDark
     this.getMasterData()
     this.loadUserData()
-    console.log('App.vue::isLocalhost:', this.isLocalhost())
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('App.vue::isLocalhost:', this.isLocalhost())
+    }
   },
 
   mounted() {
@@ -154,7 +176,8 @@ export default {
 
   computed: {
     contentHeight () {
-      return `height: ${this.$vuetify.breakpoint.height - 64 - 113}px`
+      let _dec = this.isLocalhost() ? (64 + 113): (64 + 113 + 280 * 2)
+      return `height: ${this.$vuetify.breakpoint.height - _dec}px`
     },
   },
 

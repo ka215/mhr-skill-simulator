@@ -147,8 +147,12 @@ export default {
               break
             case 'talisman':
               _tmp = this.$store.getters.itemsById('talismans', loadouts[`${kind}_id`])
-              //console.log(this.getEquipType(kind, 0), _tmp.name)
-              this.equipmentItems[kind].name = `<span class="rare-${_tmp.rarity}--text">${_tmp.name}</span>`
+              //console.log(this.getEquipType(kind, 0), _tmp)
+              if (_tmp) {
+                this.equipmentItems[kind].name = `<span class="rare-${_tmp.rarity}--text">${_tmp.name}</span>`
+              } else {
+                this.equipmentItems[kind].name = '<span class="muted--text">削除されました</span>'
+              }
               break
             default:
               _tmp = this.$store.getters.itemsById('armors', loadouts[`${kind}_id`])

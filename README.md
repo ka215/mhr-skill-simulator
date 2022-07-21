@@ -21,9 +21,9 @@
 
 ## Demo at this time
 
-The current latest version: v0.1.7
+The current latest version: v0.1.8
 
-<https://ka2.org/mhr/v0.1.7/>
+<https://ka2.org/mhr/v0.1.8/>
 
 *Notes:*
 - *The content of the master data in the demo version is subject to change at any time.*

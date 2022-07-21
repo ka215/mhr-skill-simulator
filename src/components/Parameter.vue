@@ -581,7 +581,11 @@ export default {
         }
         switch (this.$props.name) {
           case 'attack':
-            totalValue += this.correctedValues.skill + this.correctedValues.item
+            if (totalValue > 0) {
+              totalValue += this.correctedValues.skill + this.correctedValues.item
+            } else {
+              totalValue = '-'
+            }
             break
           case 'defense':
             totalValue += this.correctedValues.skill + this.correctedValues.item + this.correctedValues.bonus

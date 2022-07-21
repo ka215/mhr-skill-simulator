@@ -68,7 +68,9 @@ export default {
       elements: [ '', '火', '水', '雷', '氷', '龍', '毒', '麻痺', '睡眠', '爆破' ],
     },
     expanded: true,
-    weapon: null,
+    weapon: {
+      attack: 0,
+    },
   }),
 
   created() {

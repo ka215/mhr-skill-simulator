@@ -97,7 +97,9 @@ const getters = {
   // Get the currently equipped item data by specifying the type and key
   // (: 現在装備中の装備データを種別・キー名指定で取得
   equipmentKindOf: (state) => (kind, key=null) => {
-    return !key ? state[kind].data: state[kind].data[key]
+    return !key
+      ? state[kind].data
+      : (state[kind].data && Object.prototype.hasOwnProperty.call(state[kind].data, key) ? state[kind].data[key]: 0)
   },
   // Get the level of the currently equipped armor
   // (: 現在装備中の防具のレベルを取得

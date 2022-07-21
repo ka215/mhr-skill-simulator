@@ -2,18 +2,22 @@
 .DS_Store
 .config
 bulk_data
+dist
 docs
 node_modules
 vendor
-v0.*.*
+v*.*.*
 
 # local env files
 .env*
-.htaccess
+*.htaccess
 database.json
+vue.config.*.js
 
 # Log files
 *.log*
 
 # Test files
 test-*
+index.html
+

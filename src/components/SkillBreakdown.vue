@@ -207,7 +207,7 @@ export default {
       //console.log('SkillBreakdown.vue::setEquipment.after: Changed "%s"', kind)
       kinds.forEach(v => {
         // Get builtin skills from equipment item
-        currentSkills[v] = Object.prototype.hasOwnProperty.call(this.$store.state[v].data, 'skills') ? Object.assign({}, this.$store.state[v].data.skills): {}
+        currentSkills[v] = this.$store.state[v].data && Object.prototype.hasOwnProperty.call(this.$store.state[v].data, 'skills') ? Object.assign({}, this.$store.state[v].data.skills): {}
         if (this.isArmor(v)) {
           armorBuiltinSkills = this.arrayUnique(armorBuiltinSkills.concat(Object.keys(currentSkills[v])))
         }

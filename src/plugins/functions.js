@@ -6,7 +6,8 @@ export default {
      * @return bool
      */
     isLocalhost: function() {
-      return /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+      //return /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+      return true
     },
     /**
      * Sleep at the milliseconds specified.
@@ -43,6 +44,7 @@ export default {
       //const DEFAULT_BASE_URL = this.isLocalhost() ? 'dev2.ka2.org/mhr-simulator/': `${window.location.hostname}/mhr-simulator/v${process.env.VUE_APP_VERSION}/`
       const DEFAULT_BASE_URL = this.isLocalhost() ? 'localhost:8080/': `${window.location.hostname}/mhr/v${process.env.VUE_APP_VERSION}/`
       let connectURL = overrideURL || '//' + DEFAULT_BASE_URL
+      //console.log('createAxios:', connectURL, overrideURL)
       const DEFAULT_OPTIONS = {
         baseURL: connectURL,
         headers: {
@@ -72,6 +74,7 @@ export default {
       if (this.$store.state[kind].length > 0 && callback && typeof callback === 'function') {
         return callback()
       }
+      //console.log('dep_retrieveData:', process.env.VUE_APP_PROD_URL)
       const instance = this.createAxios(process.env.VUE_APP_PROD_URL)
       let requestPath = `index.php?tbl=${kind}`
       if (kind === 'talismans') {
@@ -383,8 +386,8 @@ export default {
           '双剣',
           '鎚',// 'ハンマー',
           '狩猟笛',
-          '槍',// 'ランス',
-          '銃槍',// 'ガンランス',
+          '鎗',// 'ランス',
+          '銃鎗',// 'ガンランス',
           '剣斧',// 'スラッシュアックス',
           '盾斧',// 'チャージアックス',
           '操虫棍',

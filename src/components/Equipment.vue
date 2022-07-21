@@ -98,7 +98,7 @@ export default {
         if ('setEquipment' === action.type) {
           if (Object.prototype.hasOwnProperty.call(action.payload, 'data')) {
             let oldId = this.currentIds[action.payload.property],
-                newId = action.payload.data.id
+                newId = action.payload.data ? action.payload.data.id: 0
             if (oldId != newId) {
               this.currentIds[action.payload.property] = newId
               //console.log('Equipment.vue::After changing %s: %s -> %s', action.payload.property, oldId, newId)

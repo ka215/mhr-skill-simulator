@@ -482,6 +482,9 @@ export default {
         let notices = {
           title: null,
           messages: [],
+          close: '閉じる',
+          commit: '',
+          emit: null,
         }
         if (response.data.state == 201) {
           newTalisman.id = response.data.id

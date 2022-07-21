@@ -1,6 +1,6 @@
 {
   "name": "mhr-skill-simulator",
-  "version": "0.1.7",
+  "version": "1.0.1",
   "private": true,
   "description": "Skill simulation tool for Monster Hunter Rise",
   "author": {
@@ -8,6 +8,9 @@
     "email": "ka2@ka2.org"
   },
   "scripts": {
+    "dev": "cross-env VUE_CLI_SERVICE_CONFIG_PATH=$PWD/vue.config.dev.js vue-cli-service serve",
+    "build:dev": "cross-env VUE_CLI_SERVICE_CONFIG_PATH=$PWD/vue.config.dev.js vue-cli-service build",
+    "lint:dev": "cross-env VUE_CLI_SERVICE_CONFIG_PATH=$PWD/vue.config.dev.js vue-cli-service lint",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
@@ -15,9 +18,13 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "cross-env": "^7.0.3",
     "vue": "^2.6.11",
     "vue-axios": "^3.2.4",
+    "vue-google-adsense": "^1.9.3",
+    "vue-gtag": "^1.16.1",
     "vue-router": "^3.5.1",
+    "vue-script2": "^2.1.0",
     "vuetify": "^2.4.0",
     "vuex": "^3.6.2"
   },

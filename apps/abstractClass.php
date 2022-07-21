@@ -10,7 +10,7 @@ namespace MHRise\SkillSimulator;
 if ( !class_exists( 'abstractClass' ) ) :
 
 abstract class abstractClass {
-    const VERSION   = '0.1.6';
+    const VERSION   = '1.0.1';
     const DEBUG_LOG = true;
 
     /**
@@ -68,13 +68,15 @@ abstract class abstractClass {
      * @access protected
      */
     protected function __construct(
-        private string $env       = 'production',
+        // private string $env       = 'production',
+        private string $env       = 'development',
         private string $conf_file = 'database.json',
     ) {
         $this->app_dir   = str_replace( DIRECTORY_SEPARATOR, '/', dirname( __DIR__ ) );
         $this->conf_path = "{$this->app_dir}/.config/{$this->conf_file}";
 
         $this->load_config();
+        $this->env_filter();
         $this->connect_database();
         $this->init();
     }
@@ -223,6 +225,24 @@ abstract class abstractClass {
      * @access protected
      */
     abstract protected function catch_request();
+
+    /**
+     * Filters environment
+     *
+     * @access protected
+     */
+    protected function env_filter() {
+        $ref_path  = isset( $_SERVER['HTTP_REFERER'] ) ? trim( parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_PATH ), DIRECTORY_SEPARATOR ) : DIRECTORY_SEPARATOR;
+        $path_elms = explode( DIRECTORY_SEPARATOR, $ref_path );
+        if ( isset( $path_elms[1] ) && version_compare( trim( $path_elms[1], 'v' ), '1.0.0' ) < 0 ) {
+            $this->env = 'development';
+            $res = 'アプリの稼働環境がバージョン 1.0.0 未満（'. $path_elms[1] .'）のため「'. $this->env .'」DBに接続します。';
+        } else {
+            $this->env = 'production';
+            $res = 'アプリの稼働環境がバージョン 1.0.0 以上のため「'. $this->env .'」DBに接続します。';
+        }
+        self::logger( $res );
+    }
 
     /**
      * Logger
